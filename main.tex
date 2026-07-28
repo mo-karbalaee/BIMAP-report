@@ -234,27 +234,33 @@ with the baseline fluorescence $F_0$ estimated as the tenth percentile of the ne
 time (a robust resting level). Fine-tuning updates both the encoder and the head (true fine-tuning,
 not a frozen linear probe).
 
-\paragraph{Per-neuron embeddings (H3).} H3 asks whether the encoder represents each neuron
-consistently, which requires one embedding vector per neuron per frame. Because the encoder preserves
-spatial resolution, its output for a frame is a dense feature map that assigns a $32$-dimensional
-feature vector to every location. For a given neuron I take its footprint from the label mask and
-average the feature vectors of all locations inside that footprint, giving a single $32$-dimensional
-embedding for that neuron in that frame (masked average pooling, Figure~\ref{fig:h3emb}). Doing this
-for every neuron in every frame produces, for each neuron, a trajectory of embeddings over time. I
-then compare embeddings by cosine similarity in two ways: \emph{within-neuron}, between the same
-neuron in different frames, and \emph{between-neuron}, between different neurons in the same frame.
-The gap, within minus between, measures how much more consistent a neuron is with itself over time
-than with its neighbours. No labels enter the similarity itself; the footprints only say which
-locations belong to which neuron.
+\paragraph{Per-neuron embeddings (H3).} H3 measures whether an encoder represents each neuron
+consistently, so it needs one embedding vector per neuron per frame. The way I extract this embedding
+is a generic operation on any encoder of this architecture, and that is exactly what makes H3 a fair
+comparison: I apply the \emph{identical} steps to encoders that share the architecture and differ only
+in how their weights were trained, self-supervised (JEPA), supervised (the same network trained
+end-to-end on the segmentation labels), and random (untrained); the self-supervised encoder is
+evaluated in both its same-species and cross-species forms. In every case the encoder preserves spatial
+resolution, so its output for a frame is a dense feature map with a $32$-dimensional feature vector at
+every location. For a given neuron I take its \emph{footprint}, the set of image locations the label
+mask assigns to that neuron, and average the feature vectors over those locations, giving one
+$32$-dimensional embedding for that neuron in that frame (masked average pooling,
+Figure~\ref{fig:h3emb}). Repeating this for every neuron in every frame gives each neuron a trajectory
+of embeddings over time. I then compare embeddings by cosine similarity in two ways, \emph{within-neuron}
+(same neuron, different frames) and \emph{between-neuron} (different neurons, same frame), and report
+the gap (within minus between) separately for each encoder. No labels enter the similarity itself; the
+footprints only say which locations belong to which neuron.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/h3-embedding.png}
-\caption{How a per-neuron embedding is formed in H3. \emph{Left:} the encoder turns a frame into a
-dense feature map; the feature vectors at the locations inside a neuron's footprint are averaged into
-a single embedding for that neuron in that frame. \emph{Right:} embeddings are compared by cosine
-similarity, within-neuron (same neuron across frames) against between-neuron (different neurons in the
-same frame). Own figure.}
+\caption{How a per-neuron embedding is formed in H3, and why the comparison is fair. \emph{Left:} an
+encoder turns a frame into a dense feature map, and the feature vectors at the locations inside a
+neuron's footprint are averaged into one embedding for that neuron in that frame. The identical
+procedure is run on encoders that share this architecture but differ only in training
+(self-supervised, supervised, random). \emph{Right:} embeddings are compared by cosine similarity,
+within-neuron (same neuron across frames) against between-neuron (different neurons in the same
+frame); the gap is reported per encoder. Own figure.}
 \label{fig:h3emb}
 \end{figure}
 \label{sec:protocol}
