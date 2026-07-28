@@ -530,13 +530,10 @@ for their guidance.}
 \label{app:log}
 \sloppy
 
-The code is available at \url{https://github.com/mo-karbalaee/NEUROSEG}, with a supervisor invited for
-grading, alongside the complete experimental log. Every training
-run is recorded with its hypothesis, its setting (mode and labeled fraction), the per-epoch training
-loss and validation Dice and mIoU, and the final held-out test scores; for H3 the within- and
-between-neuron similarities and their gap are recorded instead. Tables~\ref{tab:h1}--\ref{tab:h3}
-report the final test scores of the latest H1, H2, and H3 runs, and Table~\ref{tab:hparams} lists
-the training settings.
+The complete per-run, per-epoch experimental log (training and validation curves and the final
+held-out scores for every run) is included with the code at
+\url{https://github.com/mo-karbalaee/NEUROSEG}. Table~\ref{tab:hparams} lists the training settings
+shared across experiments; the final scores are reported in Section~\ref{sec:results}.
 
 \begin{table}[h]
 \centering
@@ -557,14 +554,6 @@ Test split & 20\% & Seed & 1 \\
 and target organisms for H2) vary per experiment.}
 \label{tab:hparams}
 \end{table}
-
-\paragraph{Statistical tests.} All reported statistics come from held-out clips of the mouse
-benchmark recording (Neurofinder 00.00). H1: paired Wilcoxon on $n=120$ clips, significant at both
-fractions ($p<10^{-19}$), with the self-supervised model $+0.017$ Dice at 100\% but $-0.077$ at 10\%.
-H2: paired Wilcoxon, a $0.011$ Dice cross- versus same-species penalty ($p<10^{-20}$) and a $+0.006$
-cross- versus from-scratch difference ($p<10^{-9}$). H3: Mann-Whitney within versus between, all
-significant ($p\approx0$), with Cohen's $d = 0.16$ (random), $0.66$ (self-supervised), and $1.45$
-(supervised). The field-level detection F1 and Cellpose comparison are in Table~\ref{tab:field}.
 
 \vskip 0.2in
 \bibliography{references}
