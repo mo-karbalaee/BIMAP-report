@@ -46,13 +46,11 @@ cross-species (Drosophila and zebrafish) recordings: whether self-supervision he
 are scarce (H1), whether representations transfer across species (H2), and whether the learned
 features are temporally stable and distinct per neuron (H3). The results are a first attempt at
 a novel approach rather than a decisive win. Self-supervised pretraining does not convincingly beat
-a from-scratch baseline: the per-clip Dice difference is statistically significant but changes sign
-across label fractions (self-supervised $+0.017$ at full labels yet $-0.077$ at 10\%, the scarce-label
-regime the hypothesis actually targets). Cross-species representations transfer to mouse with only a
-small, statistically significant penalty relative to same-species pretraining ($0.011$ Dice), and even
-slightly exceed the from-scratch baseline. The self-supervised encoder separates neurons in time well
-above a random baseline, though a supervised encoder separates them best (Cohen's $d = 0.66$ vs.\
-$1.45$; random $d = 0.16$). I trace the absence of a decisive win to a
+a from-scratch baseline: the difference changes sign across label fractions and is in fact worst in
+the scarce-label regime the hypothesis was meant to help. Cross-species representations transfer to
+mouse with no practically meaningful penalty relative to same-species pretraining, and even slightly
+exceed training from scratch. The self-supervised encoder separates neurons in time well above a
+random baseline, though a supervised encoder separates them best. I trace the absence of a decisive win to a
 self-supervised objective that under-converges, and I lay out the concrete levers that I believe
 will let the approach outperform the baselines. The code and the full experimental log accompany
 this report.
