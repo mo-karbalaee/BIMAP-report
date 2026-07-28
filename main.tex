@@ -73,6 +73,16 @@ however, is not yet science. Before any neuron's activity can be analyzed, each 
 recording must be \emph{segmented}. Segmentation is therefore the first and unavoidable step of
 essentially every calcium-imaging analysis pipeline.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/activity-traces.png}
+\caption{Why segmentation matters. \emph{Left:} six example neurons located in one recording.
+\emph{Right:} the $\Delta F/F_0$ activity trace read out from each once it is segmented, the quantity
+downstream analyses depend on. Data: Neurofinder 00.00, mouse cortex
+\citep{peron2015barrel,neurofinder}.}
+\label{fig:traces}
+\end{figure}
+
 This step is done either manually, which is slow, subjective, and does not scale, or automatically.
 Automated methods already exist, from classical toolboxes to deep-learning segmenters
 \citep{pachitariu2017suite2p,giovannucci2019caiman,stringer2021cellpose}, and this work adds one more.
