@@ -37,7 +37,8 @@ Calcium imaging records the activity of large neuronal populations in living ani
 recording must first be segmented into individual neurons before any activity can be read out.
 Manual annotation is the bottleneck: it is slow, subjective, and does not scale. I ask whether
 self-supervised learning, the paradigm behind modern language and vision foundation models, can
-reduce the dependence on scarce manual labels for this task. I present NEUROSEG, an
+reduce the dependence on scarce manual labels for this task. I present
+NEUROSEG,\footnote{Code: \url{https://github.com/mo-karbalaee/NEUROSEG}} an
 end-to-end pipeline that segments neuronal somata in calcium-imaging recordings with a
 Joint-Embedding Predictive Architecture (JEPA) pretrained on unlabeled video and fine-tuned for
 segmentation. I evaluate three hypotheses on the Neurofinder benchmark and on
@@ -531,7 +532,8 @@ declare no competing interests.}
 \label{app:log}
 \sloppy
 
-The code and the complete experimental log are available to the project supervisors. Every training
+The code is available at \url{https://github.com/mo-karbalaee/NEUROSEG}, with a supervisor invited for
+grading, alongside the complete experimental log. Every training
 run is recorded with its hypothesis, its setting (mode and labeled fraction), the per-epoch training
 loss and validation Dice and mIoU, and the final held-out test scores; for H3 the within- and
 between-neuron similarities and their gap are recorded instead. Tables~\ref{tab:h1}--\ref{tab:h3}
