@@ -234,7 +234,29 @@ with the baseline fluorescence $F_0$ estimated as the tenth percentile of the ne
 time (a robust resting level). Fine-tuning updates both the encoder and the head (true fine-tuning,
 not a frozen linear probe).
 
-\subsection{Experimental Protocol}
+\paragraph{Per-neuron embeddings (H3).} H3 asks whether the encoder represents each neuron
+consistently, which requires one embedding vector per neuron per frame. Because the encoder preserves
+spatial resolution, its output for a frame is a dense feature map that assigns a $32$-dimensional
+feature vector to every location. For a given neuron I take its footprint from the label mask and
+average the feature vectors of all locations inside that footprint, giving a single $32$-dimensional
+embedding for that neuron in that frame (masked average pooling, Figure~\ref{fig:h3emb}). Doing this
+for every neuron in every frame produces, for each neuron, a trajectory of embeddings over time. I
+then compare embeddings by cosine similarity in two ways: \emph{within-neuron}, between the same
+neuron in different frames, and \emph{between-neuron}, between different neurons in the same frame.
+The gap, within minus between, measures how much more consistent a neuron is with itself over time
+than with its neighbours. No labels enter the similarity itself; the footprints only say which
+locations belong to which neuron.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/h3-embedding.png}
+\caption{How a per-neuron embedding is formed in H3. \emph{Left:} the encoder turns a frame into a
+dense feature map; the feature vectors at the locations inside a neuron's footprint are averaged into
+a single embedding for that neuron in that frame. \emph{Right:} embeddings are compared by cosine
+similarity, within-neuron (same neuron across frames) against between-neuron (different neurons in the
+same frame). Own figure.}
+\label{fig:h3emb}
+\end{figure}
 \label{sec:protocol}
 
 \paragraph{Metrics.} Segmentation quality is measured with two complementary metrics. The
@@ -388,8 +410,9 @@ random baseline; the supervised encoder is strongest.}
 \end{table}
 
 The hypothesis is that a good encoder keeps a neuron looking like itself over time while distinct
-from other neurons. Using pooled per-neuron embeddings and no labels for the metric itself,
-Table~\ref{tab:h3} and Figure~\ref{fig:h3} show a clear, positive gap for the self-supervised encoder
+from other neurons. Using the per-neuron embeddings of Figure~\ref{fig:h3emb} (no labels enter the
+metric itself), Table~\ref{tab:h3} and Figure~\ref{fig:h3} show a clear, positive gap for the
+self-supervised encoder
 (same-species gap $0.057$, cross-species $0.028$), far above the near-zero random baseline
 ($0.007$): self-supervision learned to distinguish neurons without ever seeing a segmentation label.
 The supervised encoder has the largest gap ($0.208$). A Mann-Whitney test confirms that within-neuron
