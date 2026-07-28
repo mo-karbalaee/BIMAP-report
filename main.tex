@@ -165,7 +165,7 @@ two H1 arms differ only in initialization.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.66\textwidth,keepaspectratio]{figures/pipeline.png}
+\includegraphics[width=\textwidth]{figures/pipeline.png}
 \caption{The NEUROSEG pipeline. The training lane pretrains a JEPA encoder on unlabeled video and
 fine-tunes a segmentation head; the inference lane loads a recording, preprocesses it, segments it
 with either the JEPA model or the Cellpose default, extracts $\Delta F/F_0$ activity traces, and
@@ -174,8 +174,19 @@ visualizes the result. Own figure.}
 \end{figure}
 
 NEUROSEG follows the JEPA design principle of three components: a context encoder, a target encoder,
-and a predictor operating in latent space, plus a regularizer that prevents representation collapse.
-The model never reconstructs pixels as its main objective; it predicts representations.
+and a predictor operating in latent space, plus a regularizer that prevents representation collapse
+(Figure~\ref{fig:jepa}). The model never reconstructs pixels as its main objective; it predicts
+representations.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/jepa.png}
+\caption{The JEPA training scheme. A context branch encodes earlier frames and predicts the latent
+of a later frame; a target branch encodes that later frame with an EMA target encoder. The two are
+matched in latent space under variance-covariance regularization. For segmentation, the pretrained
+context encoder is reused with a light head. Own figure.}
+\label{fig:jepa}
+\end{figure}
 
 \paragraph{Encoder (ResNet5).} The context encoder is a five-layer residual network
 \citep{he2016resnet} with \emph{all strides set to one} and no pooling, so the output feature map
@@ -283,9 +294,11 @@ is not fair to Cellpose, which is zero-shot while my models are trained on the t
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.6\textwidth]{figures/h1_dice.pdf}
-\caption{H1 test Dice versus labeled fraction. The two curves track each other closely and cross,
-consistent with ``comparable, no decisive advantage.''}
+\includegraphics[width=\textwidth]{figures/h1-results.png}
+\caption{H1, field-level evaluation on held-out clips of the same recording. Dice (left) and
+detection F1 (right) versus labeled fraction, for JEPA-pretrained, from-scratch supervised, and the
+off-the-shelf Cellpose reference. The two learned models track each other and both sit well above
+Cellpose on this metric; detection F1 stays low for all models.}
 \label{fig:h1}
 \end{figure}
 
@@ -319,9 +332,11 @@ reflect the similarity of the data as much as a transferable, segmentation-speci
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.6\textwidth]{figures/h2_dice.pdf}
-\caption{H2 held-out mouse Dice versus labeled fraction. Cross-species self-supervision tracks the
-from-scratch baseline; against same-species self-supervision the gap is $\approx 0.01$.}
+\includegraphics[width=0.72\textwidth]{figures/h2-transfer.png}
+\caption{H2 held-out mouse Dice versus labeled fraction, for three initializations: from-scratch,
+same-species self-supervision (mouse), and cross-species self-supervision (Drosophila and
+zebrafish). The two self-supervised curves nearly overlap, which is the point: cross-species
+pretraining transfers to mouse with no meaningful penalty.}
 \label{fig:h2}
 \end{figure}
 
@@ -358,10 +373,10 @@ effect size is medium (Cohen's $d = 0.66$) against a large effect for the superv
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/h3_within_between.pdf}\hfill
-\includegraphics[width=0.48\textwidth]{figures/h3_gap.pdf}
-\caption{H3. Left: within- versus between-neuron similarity per encoder. Right: the gap. The
-self-supervised encoders sit well above random; the supervised encoder separates neurons best.}
+\includegraphics[width=\textwidth]{figures/h3-stability.png}
+\caption{H3. Left: within- versus between-neuron cosine similarity for the self-supervised,
+supervised, and random encoders. Right: the gap (within $-$ between) for each. The self-supervised
+encoder sits well above random; the supervised encoder separates neurons best.}
 \label{fig:h3}
 \end{figure}
 
