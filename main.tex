@@ -5,9 +5,6 @@
 \usepackage{xcolor}
 \usepackage{amsmath}
 
-% Visible marker for the few exact values still to be pasted from the stats scripts.
-\newcommand{\pending}[1]{\textcolor{red}{[#1]}}
-
 \ShortHeadings{NEUROSEG: Self-Supervised Neuron Segmentation for Calcium Imaging}{Karbalaee}
 \firstpageno{1}
 
@@ -49,12 +46,14 @@ fine-tuned for segmentation. I evaluate three hypotheses on the Neurofinder benc
 cross-species (Drosophila and zebrafish) recordings: whether self-supervision helps when labels
 are scarce (H1), whether representations transfer across species (H2), and whether the learned
 features are temporally stable and distinct per neuron (H3). The results are a first attempt at
-a novel approach rather than a decisive win. Self-supervised pretraining matches, but does not
-convincingly beat, a from-scratch baseline (paired Wilcoxon, $\Delta \approx 0.02$ Dice, sign
-flips across label fractions); cross-species representations transfer to mouse with no meaningful
-penalty relative to same-species pretraining ($\Delta \approx 0.01$ Dice); and the self-supervised
-encoder separates neurons in time well above a random baseline, though a supervised encoder
-separates them best (Cohen's $d = 0.66$ vs.\ $1.45$). I trace the absence of a decisive win to a
+a novel approach rather than a decisive win. Self-supervised pretraining does not convincingly beat
+a from-scratch baseline: the per-clip Dice difference is statistically significant but changes sign
+across label fractions (self-supervised $+0.017$ at full labels yet $-0.077$ at 10\%, the scarce-label
+regime the hypothesis actually targets). Cross-species representations transfer to mouse with only a
+small, statistically significant penalty relative to same-species pretraining ($0.011$ Dice), and even
+slightly exceed the from-scratch baseline. The self-supervised encoder separates neurons in time well
+above a random baseline, though a supervised encoder separates them best (Cohen's $d = 0.66$ vs.\
+$1.45$; random $d = 0.16$). I trace the absence of a decisive win to a
 self-supervised objective that under-converges, and I lay out the concrete levers that I believe
 will let the approach outperform the baselines. The code and the full experimental log accompany
 this report.
@@ -98,6 +97,11 @@ learned latent space rather than in pixel space. This forces the model to abstra
 noise, which is severe in calcium imaging, and to focus on the structure that persists over time,
 which is exactly what a neuron is. To my knowledge, adapting JEPA-style self-supervision to
 calcium-imaging segmentation is novel, and that novelty is the core contribution of this work.
+
+Concretely, I ask three questions. \textbf{(H1)} Does self-supervised pretraining improve
+segmentation when labeled data is scarce? \textbf{(H2)} Do representations learned on one species
+transfer to another? \textbf{(H3)} Are the learned per-neuron features stable over time and distinct
+between neurons? Each is tested against explicit baselines and with statistical tests.
 
 \paragraph{Contributions.} This report makes the following contributions.
 \begin{itemize}
@@ -243,6 +247,21 @@ $\mathrm{IoU}\ge 0.5$. Dice and detection F1 are not redundant: a model can cove
 (high Dice) yet merge adjacent somata into one blob (low detection F1). H3 uses a different family
 entirely: the cosine similarity of pooled per-neuron embeddings.
 
+\paragraph{Two evaluation protocols.} I report segmentation at two granularities, and they are not
+interchangeable. The \emph{per-clip} protocol scores each held-out clip at the training resolution and
+averages over clips; it is used for the fraction curves and the paired tests
+(Tables~\ref{tab:h1},~\ref{tab:h2}). The \emph{field-level} protocol aggregates a model's predictions
+across the recording into a single native-resolution mask of the whole field of view and scores it
+against the full ground-truth footprint; this is where detection F1 and the Cellpose comparison are
+computed, because Cellpose segments one native-resolution image. Field-level Dice is the lower of the
+two, as it is scored at full resolution over the entire footprint, including neurons that are never
+active in the movie.
+
+\paragraph{Baselines.} For H1 and H2 I compare three initializations under identical fine-tuning:
+from-scratch (random initialization), same-species self-supervision (pretrained on mouse), and
+cross-species self-supervision (pretrained on Drosophila and zebrafish). Cellpose, a generalist
+pretrained segmenter applied zero-shot, serves as an additional external reference.
+
 \paragraph{Statistical tests.} Because a single scalar per run hides variability, I test the
 per-clip score distributions. For H1 and H2 the same held-out clips are scored by two models, so I
 use the \textbf{paired Wilcoxon signed-rank test} \citep{wilcoxon1945}, which is non-parametric and
@@ -287,14 +306,15 @@ sign of the small difference flips (baseline ahead at 10--75\%, SSL ahead at 100
 \end{table}
 
 The hypothesis is that self-supervised pretraining helps most when labels are scarce.
-Table~\ref{tab:h1} and Figure~\ref{fig:h1} show the outcome: the pretrained and from-scratch models
-are close at every fraction, and the small gap changes sign, with the baseline ahead at 10--75\% and
-the pretrained model ahead only at 100\%. A paired Wilcoxon test at the 100\% fraction finds the
-pretrained model significantly higher, but the mean difference is only $\Delta \approx 0.02$ Dice and
-the direction reverses at lower fractions, so this is not a robust advantage
-(Section~\ref{sec:discussion}). Both learned models substantially exceed the off-the-shelf Cellpose
-baseline at the field level (\pending{Cellpose Dice}), but that comparison
-is not fair to Cellpose, which is zero-shot while my models are trained on the target recording.
+Table~\ref{tab:h1} and Figure~\ref{fig:h1} show the opposite of that prediction. The per-clip Dice
+difference between the pretrained and from-scratch models is statistically significant at both
+fractions tested (paired Wilcoxon, $n=120$ clips, $p<10^{-19}$), but it changes sign: the pretrained
+model is ahead by only $0.017$ at 100\% labels yet behind by $0.077$ at 10\%. Self-supervision is thus
+worst exactly where it was expected to help most, so there is no robust sample-efficiency advantage
+(Section~\ref{sec:discussion}). Both learned models do clearly beat the zero-shot Cellpose reference at
+the field level (Dice $0.70$--$0.71$ vs.\ $0.279$; detection F1 $0.26$--$0.28$ vs.\ $0.170$), but that
+comparison is not fair to Cellpose, which never sees the target recording while my models are trained
+on it.
 
 \begin{figure}[t]
 \centering
@@ -320,19 +340,21 @@ From scratch (baseline)       & \textbf{0.698} & \textbf{0.849} & \textbf{0.886}
 \end{tabular}
 \caption{H2 on the mouse target (held-out test Dice). An encoder self-supervised on a different
 species (Drosophila and zebrafish) and fine-tuned on mouse tracks the from-scratch baseline, and in
-a paired comparison against a same-species (mouse) self-supervised encoder it shows no meaningful
-penalty ($\Delta \approx 0.01$ Dice).}
+a paired comparison against a same-species (mouse) self-supervised encoder it shows only a small
+penalty ($0.011$ Dice, statistically significant but negligible in magnitude).}
 \label{tab:h2}
 \end{table}
 
 The hypothesis is that representations learned on one species transfer to another. The setup is
 leakage-free by construction: the encoder is pretrained on species the mouse test set never contains.
-Table~\ref{tab:h2} and Figure~\ref{fig:h2} show that the cross-species encoder fine-tunes to mouse on
-par with the from-scratch baseline, and a paired Wilcoxon test comparing cross-species against
-same-species self-supervision finds no significant penalty ($\Delta \approx 0.01$ Dice, cross vs.\
-same). Representations therefore transfer across species with no meaningful cost. The honest caveat
-is interpretive: calcium activity patterns look broadly similar across species, so this transfer may
-reflect the similarity of the data as much as a transferable, segmentation-specific representation.
+Table~\ref{tab:h2} and Figure~\ref{fig:h2} show that the cross-species encoder fine-tunes to mouse
+essentially on par with same-species pretraining: the per-clip penalty is only $0.011$ Dice, and while
+a paired Wilcoxon test flags it as statistically significant ($n=120$, $p<10^{-20}$), the magnitude is
+negligible. Cross-species pretraining even slightly exceeds the from-scratch baseline ($+0.006$ Dice,
+$p<10^{-9}$). Representations therefore transfer across species at a cost too small to matter in
+practice. The honest caveat is interpretive: calcium activity patterns look broadly similar across
+species, so this transfer may reflect the similarity of the data as much as a transferable,
+segmentation-specific representation.
 
 \begin{figure}[t]
 \centering
@@ -340,7 +362,7 @@ reflect the similarity of the data as much as a transferable, segmentation-speci
 \caption{H2 held-out mouse Dice versus labeled fraction, for three initializations: from-scratch,
 same-species self-supervision (mouse), and cross-species self-supervision (Drosophila and
 zebrafish). The two self-supervised curves nearly overlap, which is the point: cross-species
-pretraining transfers to mouse with no meaningful penalty.}
+pretraining transfers to mouse with a negligible penalty ($0.011$ Dice).}
 \label{fig:h2}
 \end{figure}
 
@@ -370,10 +392,10 @@ from other neurons. Using pooled per-neuron embeddings and no labels for the met
 Table~\ref{tab:h3} and Figure~\ref{fig:h3} show a clear, positive gap for the self-supervised encoder
 (same-species gap $0.057$, cross-species $0.028$), far above the near-zero random baseline
 ($0.007$): self-supervision learned to distinguish neurons without ever seeing a segmentation label.
-The supervised encoder has the largest gap ($0.208$). A Mann-Whitney test confirms within-neuron
-similarity is significantly greater than between-neuron for the self-supervised encoder, but the
-effect size is medium (Cohen's $d = 0.66$) against a large effect for the supervised encoder
-($d = 1.45$).
+The supervised encoder has the largest gap ($0.208$). A Mann-Whitney test confirms that within-neuron
+similarity is significantly greater than between-neuron for every encoder (all $p \approx 0$), but the
+effect size is what separates them: negligible for the random encoder (Cohen's $d = 0.16$), medium for
+the self-supervised encoder ($d = 0.66$), and large for the supervised encoder ($d = 1.45$).
 
 \begin{figure}[t]
 \centering
@@ -386,14 +408,32 @@ encoder sits well above random; the supervised encoder separates neurons best.}
 
 \subsection{Instance separation and the Cellpose comparison}
 
-Across all three hypotheses, pixel Dice is good ($>0.8$ with enough labels) but detection F1 is low,
-approximately $0.2$ for every model. The learned segmenter covers the right pixels but merges
-adjacent somata, so it recovers far fewer distinct \emph{instances} than there are neurons. This is
-the clearest single weakness of the current system and is visible to the eye: the Cellpose masks look
-cleaner and more stable than mine even though my trained models score higher on the field-level
-overlap metric. The two evaluations also use different unification protocols (my model averages the
-per-clip probability maps into one field-level mask; Cellpose segments a temporal max-projection),
-which I note as a protocol inconsistency to tighten (Section~\ref{sec:limitations}).
+\begin{table}[t]
+\centering
+\begin{tabular}{lccccc}
+\toprule
+Model (field-level, native $512^2$) & Dice & Detection F1 & Precision & Recall & Instances \\
+\midrule
+JEPA fine-tune (100\%)      & 0.700 & 0.264 & 0.413 & 0.194 & 155 \\
+From scratch (100\%)        & \textbf{0.711} & \textbf{0.279} & 0.433 & 0.206 & 157 \\
+Cellpose (zero-shot)        & 0.279 & 0.170 & 0.352 & 0.112 & 105 \\
+\bottomrule
+\end{tabular}
+\caption{Field-level evaluation on Neurofinder mouse ($330$ ground-truth neurons). The trained models
+beat the zero-shot Cellpose reference on both metrics, but every detection F1 is low: all three
+recover far fewer instances than there are neurons.}
+\label{tab:field}
+\end{table}
+
+At the field level (Table~\ref{tab:field}), my trained models beat the zero-shot Cellpose reference on
+both pixel overlap (Dice $0.70$--$0.71$ vs.\ $0.279$) and instance detection (F1 $0.26$--$0.28$ vs.\
+$0.170$). But every detection F1 is low: the segmenter covers the right pixels yet merges adjacent
+somata into single blobs, recovering only about $155$ instances of the $330$ neurons present. This is
+the clearest weakness of the current system, and it is visible to the eye: the Cellpose masks look
+cleaner and more stable even though my models score higher on both metrics. One protocol caveat: my
+models form the field-level mask by averaging their per-clip probability maps, whereas Cellpose
+segments a single temporal max-projection, so the two masks are built differently even though both are
+scored against the same footprint (Section~\ref{sec:limitations}).
 
 \section{Discussion}
 \label{sec:discussion}
@@ -413,7 +453,9 @@ than a loss. The fourth is not yet fixed at scale, and it is the reason a tie is
 present setup: with equal data, self-supervision has nothing to win with. That the approach already
 matches a strong baseline, transfers across species at no cost, and induces per-neuron temporal
 structure without labels, all while the self-supervised objective still under-converges, is what
-makes me believe the ceiling is much higher than these numbers.
+makes me believe the ceiling is much higher than these numbers. Concretely, a decisive H1 result
+would be a positive and significant Dice gap at the 10\% fraction that holds across seeds and
+recordings, rather than the sign-flipping difference I observe now.
 
 \paragraph{The levers I expect to close the gap.} In order of expected value: (i) a genuinely larger
 and more diverse \emph{unlabeled} pretraining pool, which is the precondition H1 actually requires and
@@ -426,8 +468,8 @@ independently of the fine-tuning schedule.
 \subsection{Limitations}
 \label{sec:limitations}
 
-I state the weaknesses plainly. \textbf{(1) Instance separation.} Detection F1 $\approx 0.2$ for all
-models: the system does not yet separate touching neurons into instances. \textbf{(2) Single seed and
+I state the weaknesses plainly. \textbf{(1) Instance separation.} Detection F1 is low for all
+models ($0.17$--$0.28$): the system does not yet separate touching neurons into instances. \textbf{(2) Single seed and
 single recording.} The headline H1/H3 numbers come from one seed and one recording split into train
 and test, so variance across seeds and recordings is not yet characterized. \textbf{(3) Under-converged
 pretraining.} The self-supervised objective does not fully converge under the current schedule and
@@ -489,11 +531,13 @@ and target organisms for H2) vary per experiment.}
 \label{tab:hparams}
 \end{table}
 
-\paragraph{Values to finalize.} A few exact numbers, the field-level detection F1, the Cellpose
-scores, and the exact test $p$-values, are still to be completed from a final full run and are marked
-\pending{like this}. The qualitative conclusions already hold from the recorded results: H1
-significant but $\Delta\approx0.02$ with a sign flip, H2 no significant cross-species penalty, H3
-Cohen's $d=0.66$ versus $1.45$, and detection F1 $\approx 0.2$.
+\paragraph{Statistical tests.} All reported statistics come from held-out clips of the mouse
+benchmark recording (Neurofinder 00.00). H1: paired Wilcoxon on $n=120$ clips, significant at both
+fractions ($p<10^{-19}$), with the self-supervised model $+0.017$ Dice at 100\% but $-0.077$ at 10\%.
+H2: paired Wilcoxon, a $0.011$ Dice cross- versus same-species penalty ($p<10^{-20}$) and a $+0.006$
+cross- versus from-scratch difference ($p<10^{-9}$). H3: Mann-Whitney within versus between, all
+significant ($p\approx0$), with Cohen's $d = 0.16$ (random), $0.66$ (self-supervised), and $1.45$
+(supervised). The field-level detection F1 and Cellpose comparison are in Table~\ref{tab:field}.
 
 \vskip 0.2in
 \bibliography{references}
