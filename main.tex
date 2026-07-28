@@ -47,13 +47,12 @@ are scarce (H1), whether representations transfer across species (H2), and wheth
 features are temporally stable and distinct per neuron (H3). The results are a first attempt at
 a novel approach rather than a decisive win. Self-supervised pretraining does not convincingly beat
 a from-scratch baseline: the difference changes sign across label fractions and is in fact worst in
-the scarce-label regime the hypothesis was meant to help. Cross-species representations transfer to
+the scarce-label regime where the hypothesis predicted its largest gain. Cross-species representations transfer to
 mouse with no practically meaningful penalty relative to same-species pretraining, and even slightly
 exceed training from scratch. The self-supervised encoder separates neurons in time well above a
 random baseline, though a supervised encoder separates them best. I trace the absence of a decisive win to a
 self-supervised objective that under-converges, and I lay out the concrete levers that I believe
-will let the approach outperform the baselines. The code and the full experimental log accompany
-this report.
+will let the approach outperform the baselines.
 \end{abstract}
 
 \begin{keywords}
