@@ -41,7 +41,7 @@ recording must first be segmented into individual neurons before any activity ca
 Manual annotation is the bottleneck: it is slow, subjective, and does not scale. I ask whether
 self-supervised learning, the paradigm behind modern language and vision foundation models, can
 reduce the dependence on scarce manual labels for this task. I present NEUROSEG, an
-end-to-end pipeline that segments neuronal somata from TIFF calcium-imaging stacks using a
+end-to-end pipeline that segments neuronal somata in calcium-imaging recordings using a
 Joint-Embedding Predictive Architecture (JEPA): a convolutional context encoder and an
 EMA target encoder are pretrained on unlabeled video by predicting future frames in latent
 space under variance-covariance regularization, after which a light convolutional head is
@@ -56,8 +56,8 @@ penalty relative to same-species pretraining ($\Delta \approx 0.01$ Dice); and t
 encoder separates neurons in time well above a random baseline, though a supervised encoder
 separates them best (Cohen's $d = 0.66$ vs.\ $1.45$). I trace the absence of a decisive win to a
 self-supervised objective that under-converges, and I lay out the concrete levers that I believe
-will let the approach outperform the baselines. The full code, checkpoints, and experiment log
-accompany this report.
+will let the approach outperform the baselines. The code and the full experimental log accompany
+this report.
 \end{abstract}
 
 \begin{keywords}
@@ -101,10 +101,9 @@ calcium-imaging segmentation is novel, and that novelty is the core contribution
 
 \paragraph{Contributions.} This report makes the following contributions.
 \begin{itemize}
-  \item \textbf{A reusable pipeline, not a script.} NEUROSEG is a single, pip-installable,
-    end-to-end system with two modes (train, infer), modular and swappable stages, a consistent
-    TIFF data-loader abstraction, versioned checkpoints, and a built-in experiment log. Every run
-    is configured from a single file with no hardcoded paths (Section~\ref{sec:impl}).
+  \item \textbf{An end-to-end segmentation pipeline.} A single system with two modes, training and
+    inference, and swappable segmentation stages, so a raw recording is carried all the way to
+    per-neuron activity traces using either my JEPA model or a strong pretrained baseline.
   \item \textbf{A JEPA model for calcium video.} A convolutional context encoder and an EMA target
     encoder are pretrained by predicting future latents under variance-covariance regularization,
     then a light head is fine-tuned for per-pixel segmentation (Section~\ref{sec:method}).
@@ -163,14 +162,11 @@ unlabeled Drosophila-larva and zebrafish calcium video, provided by S.\ Hauser (
 are needed for pretraining, so this data is directly usable, and its two non-mouse species are what
 make the cross-species question (H2) possible.
 
-\paragraph{Preprocessing.} All video is loaded through a single TIFF/CZI loader abstraction, min-max
-normalized to $[0,1]$, and resized to $128\times128$ (bilinear for video, nearest-neighbour for
-masks, so label identities are preserved). Recordings are sliced into fixed-length temporal clips
-with a stride, and short clips are zero-padded. Neurofinder region files are rasterized into integer
-label maps with $[y,x]$ coordinate order. Self-supervised pretraining additionally applies
-temporally consistent augmentation (a shared random crop, flip, and rotation across a clip, plus
-brightness jitter and additive noise); the supervised fine-tuning branch is not augmented, so the
-two H1 arms differ only in initialization.
+\paragraph{Preprocessing.} Each recording is intensity-normalized and resized to a common
+$128\times128$ resolution, then divided into short fixed-length temporal clips. Self-supervised
+pretraining additionally applies temporally consistent augmentation (a shared random crop, flip, and
+rotation across a clip, plus brightness jitter and additive noise); the supervised fine-tuning branch
+is not augmented, so the two H1 arms differ only in initialization.
 
 \subsection{Model Architecture}
 \label{sec:method}
@@ -200,27 +196,24 @@ context encoder is reused with a light head. Own figure.}
 \label{fig:jepa}
 \end{figure}
 
-\paragraph{Encoder (ResNet5).} The context encoder is a five-layer residual network
-\citep{he2016resnet} with \emph{all strides set to one} and no pooling, so the output feature map
-retains the full input spatial resolution. This is deliberate: dense segmentation needs
-spatially-aligned features. The encoder processes a clip frame by frame (a temporal-batch mixin
-folds time into the batch dimension), producing a latent state sequence of shape
-$(B, d_{\mathrm{stc}}, T, H, W)$ with $d_{\mathrm{stc}}=32$ latent channels per location. I raised
-$d_{\mathrm{stc}}$ from an initial $8$ to $32$ after observing that too few channels could not keep
-neurons distinct in the H3 similarity analysis.
+\paragraph{Encoder.} The context encoder is a five-layer residual network \citep{he2016resnet} with
+all strides set to one and no pooling, so its output feature map keeps the full input resolution.
+This is deliberate: dense segmentation needs spatially aligned features. Each frame of a clip is
+encoded into a latent feature map with $32$ channels per location. I raised this latent width from an
+initial $8$ to $32$ after observing that too few channels could not keep neurons distinct in the H3
+analysis.
 
-\paragraph{EMA target encoder.} A second ResNet5 of identical architecture provides the prediction
+\paragraph{EMA target encoder.} A second encoder of identical architecture provides the prediction
 targets. It is not trained by gradients; it is updated as an exponential moving average of the
 context encoder ($m=0.996$) \citep{grill2020byol}. The predictor is trained to match the
 \emph{stop-gradient} output of this target encoder. This is the single most important design fix in
 the project: without it, an earlier version drove the prediction loss to zero by collapsing to
 trivially predictable features while learning nothing useful (Section~\ref{sec:discussion}).
 
-\paragraph{Predictor (ResUNet).} The predictor is a residual U-Net \citep{ronneberger2015unet}
-wrapped so that it takes consecutive latent states, concatenated along the channel axis, and predicts
-the next latent state. In the parallel unroll used for training, each step shifts the context by one
-frame and the mean-squared error to the target latent is accumulated. Prediction is thus
-\emph{temporal}: predict the future frame's representation, not a masked spatial patch.
+\paragraph{Predictor.} The predictor is a residual U-Net \citep{ronneberger2015unet}: from the
+latent states of consecutive frames it predicts the latent state of the next frame, and training
+minimizes the mean-squared error between this prediction and the target encoder's latent. Prediction
+is thus \emph{temporal}: predict the future frame's representation, not a masked spatial patch.
 
 \paragraph{Regularizer (VICReg).} Collapse is prevented explicitly by a variance-covariance loss
 \citep{bardes2022vicreg} applied in a projected latent space: a hinge variance term keeps every
@@ -228,14 +221,14 @@ embedding dimension above unit standard deviation, and a covariance term decorre
 The total pretraining loss is the sum of the prediction MSE and this regularizer; a light pixel
 reconstruction term additionally grounds the encoder.
 
-\paragraph{Segmentation head and traces.} For segmentation, the encoder feature sequence is averaged
-over time (collapsing the clip to one summary feature map, which matches the static footprint label)
-and passed to a small head: a $3\times3$ convolution, ReLU, a $1\times1$ convolution, and a sigmoid,
-producing a per-pixel probability map. Thresholding at $0.5$ gives a binary mask; connected
-components give instances. During inference the pipeline then reads each neuron's activity as the
-$\Delta F / F_0$ trace, with the baseline fluorescence $F_0$ estimated as the tenth percentile of
-each neuron's signal over time (a robust resting level). Fine-tuning uses binary cross-entropy and
-updates both the encoder and the head (true fine-tuning, not a frozen linear probe).
+\paragraph{Segmentation head and traces.} For segmentation, the encoder features are averaged over
+time (collapsing the clip to one summary feature map, which matches the static footprint label) and
+passed to a small two-layer convolutional head that outputs a per-pixel probability map. Thresholding
+this map yields a binary segmentation, and connected foreground regions yield individual neuron
+instances. During inference each neuron's activity is then read out as its $\Delta F / F_0$ trace,
+with the baseline fluorescence $F_0$ estimated as the tenth percentile of the neuron's signal over
+time (a robust resting level). Fine-tuning updates both the encoder and the head (true fine-tuning,
+not a frozen linear probe).
 
 \subsection{Experimental Protocol}
 \label{sec:protocol}
@@ -260,22 +253,9 @@ significance, \textbf{Cohen's $d$} \citep{cohen1988} for effect size, and a \tex
 
 \paragraph{Splits and logging.} Unless stated otherwise, one labeled recording is split 80/20 into
 train and test with a fixed seed; fine-tuning uses the train portion at labeled fractions
-$\{10, 50, 75, 100\}\%$ and evaluation uses the fixed 20\% held-out test clips. Every epoch of every
-run is appended to a CSV experiment log with its run identifier, hypothesis, mode, fraction, losses,
-and test scores; checkpoints are written to a new file per run and never overwritten
-(Appendix~\ref{app:log}).
-
-\subsection{Implementation and Experiment Log}
-\label{sec:impl}
-
-The code is a pip-installable Python package (\texttt{neuroseg}) with a single CLI entry point; all
-paths and hyperparameters come from CLI flags or a YAML config. A one-command demo (\texttt{demo.sh})
-runs the full H1, H2, and H3 pipelines end to end on CPU on a real Neurofinder subset in about twenty
-minutes, writing checkpoints, figures, and the experiment log. Training, inference, models, and data
-loading are separated into distinct modules; checkpoints carry a JSON sidecar recording the exact
-architecture and metrics; and smoke tests run in continuous integration on every push. The repository
-(with a supervisor invited for grading) and the complete experiment log accompany this report;
-Appendix~\ref{app:log} describes the log schema and hyperparameters.
+$\{10, 50, 75, 100\}\%$ and evaluation uses the fixed 20\% held-out test clips. Every run is logged
+with its hypothesis, its setting, the per-epoch losses and validation scores, and the final held-out
+test scores (Appendix~\ref{app:log}).
 
 \section{Results}
 \label{sec:results}
@@ -313,7 +293,7 @@ the pretrained model ahead only at 100\%. A paired Wilcoxon test at the 100\% fr
 pretrained model significantly higher, but the mean difference is only $\Delta \approx 0.02$ Dice and
 the direction reverses at lower fractions, so this is not a robust advantage
 (Section~\ref{sec:discussion}). Both learned models substantially exceed the off-the-shelf Cellpose
-baseline at the field level (\pending{Cellpose Dice from cellpose\_baseline.py}), but that comparison
+baseline at the field level (\pending{Cellpose Dice}), but that comparison
 is not fair to Cellpose, which is zero-shot while my models are trained on the target recording.
 
 \begin{figure}[t]
@@ -482,13 +462,12 @@ declare no competing interests.}
 \label{app:log}
 \sloppy
 
-Every training epoch is appended to \texttt{<output>/logs/runs.csv}; each run also writes one
-checkpoint-summary row carrying the held-out test scores. Tables~\ref{tab:h1}--\ref{tab:h3} are the
-final checkpoint rows of the latest H1, H2, and H3 runs. Key columns of the log are: \texttt{run\_id},
-\texttt{hypothesis}, \texttt{mode} (pretrain / finetune / supervised\_baseline), \texttt{labeled\_fraction},
-\texttt{epoch}, \texttt{train\_loss}, \texttt{val\_dice}, \texttt{val\_miou}, \texttt{test\_dice},
-\texttt{test\_miou}, and, for H3, \texttt{within\_sim}, \texttt{between\_sim}, \texttt{gap}. The log
-is plain CSV and requires no external tracking server.
+The code and the complete experimental log are available to the project supervisors. Every training
+run is recorded with its hypothesis, its setting (mode and labeled fraction), the per-epoch training
+loss and validation Dice and mIoU, and the final held-out test scores; for H3 the within- and
+between-neuron similarities and their gap are recorded instead. Tables~\ref{tab:h1}--\ref{tab:h3}
+report the final test scores of the latest H1, H2, and H3 runs, and Table~\ref{tab:hparams} lists
+the training settings.
 
 \begin{table}[h]
 \centering
@@ -505,23 +484,16 @@ VICReg std / cov & 10 / 100 & Fine-tune epochs & 40 \\
 Test split & 20\% & Seed & 1 \\
 \bottomrule
 \end{tabular}
-\caption{Default hyperparameters (from \texttt{config.yaml}). Hypothesis-specific settings (labeled
-fractions for H1, source/target organisms for H2) are passed via config or CLI, never hardcoded.}
+\caption{Default training settings. Hypothesis-specific choices (labeled fractions for H1, source
+and target organisms for H2) vary per experiment.}
 \label{tab:hparams}
 \end{table}
 
-\paragraph{Exact test statistics to finalize.} A small number of exact values are produced by the
-analysis scripts and pasted into the tables above:
-\begin{itemize}
-  \item \texttt{scripts/stats\_tests.py}: per-clip Wilcoxon (H1) and Mann-Whitney with Cohen's $d$ (H3);
-  \item \texttt{scripts/stats\_h2.py}: per-clip Wilcoxon, cross- versus same-species (H2);
-  \item \texttt{scripts/detection\_f1.py}: field-level detection F1 for my checkpoints;
-  \item \texttt{scripts/cellpose\_baseline.py}: Cellpose Dice and detection F1.
-\end{itemize}
-The qualitative conclusions above (H1 significant but $\Delta\approx0.02$ with sign flip; H2 no
-significant cross-species penalty; H3 Cohen's $d=0.66$ vs.\ $1.45$; detection F1 $\approx 0.2$)
-follow their output; the few exact values still marked \pending{like this} are to be pasted from a
-final run.
+\paragraph{Values to finalize.} A few exact numbers, the field-level detection F1, the Cellpose
+scores, and the exact test $p$-values, are still to be completed from a final full run and are marked
+\pending{like this}. The qualitative conclusions already hold from the recorded results: H1
+significant but $\Delta\approx0.02$ with a sign flip, H2 no significant cross-species penalty, H3
+Cohen's $d=0.66$ versus $1.45$, and detection F1 $\approx 0.2$.
 
 \vskip 0.2in
 \bibliography{references}
