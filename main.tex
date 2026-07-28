@@ -542,36 +542,6 @@ This project was supervised by the lab of Prof.\ Dr.\ Andreas M.\ Kist, and in p
 Sophie Hauser, M.Sc., who also provided the unlabeled cross-species calcium recordings. I thank them
 for their guidance.
 
-\appendix
-
-\section{Training Settings}
-\label{app:log}
-\sloppy
-
-Table~\ref{tab:hparams} lists the training settings shared across experiments; the final scores are
-reported in Section~\ref{sec:results}, and the complete per-run experimental log is in the
-repository (\url{https://github.com/mo-karbalaee/NEUROSEG}).
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llll}
-\toprule
-Setting & Value & Setting & Value \\
-\midrule
-Latent channels $d_{\mathrm{stc}}$ & 32 & Image size & $128\times128$ \\
-Encoder hidden & 32 & Clip length $T$ & 5 \\
-Predictor hidden & 32 & Batch size & 4 \\
-Seg-head hidden & 16 & Learning rate & $10^{-3}$ \\
-EMA momentum & 0.996 & Pretrain epochs & 20 \\
-VICReg std / cov & 10 / 100 & Fine-tune epochs & 40 \\
-Test split & 20\% & Seed & 1 \\
-\bottomrule
-\end{tabular}
-\caption{Default training settings. Hypothesis-specific choices (labeled fractions for H1, source
-and target organisms for H2) vary per experiment.}
-\label{tab:hparams}
-\end{table}
-
 \vskip 0.2in
 \bibliography{references}
 
