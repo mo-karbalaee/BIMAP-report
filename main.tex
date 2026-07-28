@@ -72,12 +72,13 @@ however, is not yet science. Before any neuron's activity can be analyzed, each 
 recording must be \emph{segmented}. Segmentation is therefore the first and unavoidable step of
 essentially every calcium-imaging analysis pipeline.
 
-Today this step is either done manually, which is slow, subjective, and impossible to scale to the
-volume of data modern microscopes produce, or with supervised and classical algorithms that depend
-on hand-annotated training data or hand-tuned assumptions
-\citep{pachitariu2017suite2p,giovannucci2019caiman,stringer2021cellpose}. Labeled calcium-imaging
-data is exactly the scarce and expensive resource. Unlabeled calcium video, by contrast, is
-abundant: any recording session produces it for free.
+Strong automated tools for this step already exist: classical toolboxes that rely on hand-tuned
+assumptions about the activity signal, and deep-learning segmenters that perform well but are trained
+on hand-annotated data \citep{pachitariu2017suite2p,giovannucci2019caiman,stringer2021cellpose}. My
+starting point is not that segmentation is unsolved, but that the best methods share one limiting
+resource: labeled calcium-imaging data is scarce and expensive to produce, so segmentation still
+leans on slow, subjective manual annotation whenever those labels are missing. Unlabeled calcium
+video, by contrast, is abundant: any recording session produces it for free.
 
 This asymmetry is precisely the setting in which self-supervised learning (SSL) has transformed
 other fields. Large language models learn language by predicting held-out words in unlabeled text;
