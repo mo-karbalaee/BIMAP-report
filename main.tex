@@ -299,14 +299,13 @@ significance, \textbf{Cohen's $d$} \citep{cohen1988} for effect size, and a \tex
 train and test with a fixed seed; fine-tuning uses the train portion at labeled fractions
 $\{10, 50, 75, 100\}\%$ and evaluation uses the fixed 20\% held-out test clips. Every run is logged
 with its hypothesis, its setting, the per-epoch losses and validation scores, and the final held-out
-test scores (Appendix~\ref{app:log}).
+test scores; the complete log is in the repository.
 
 \section{Results}
 \label{sec:results}
 
 All numbers below are the held-out test scores of the latest experiment runs recorded in the
-experiment log (Appendix~\ref{app:log}); they are quoted verbatim, including where the
-self-supervised model does not win.
+experiment log; they are quoted verbatim, including where the self-supervised model does not win.
 
 \subsection{H1: Does self-supervision help when labels are scarce?}
 
@@ -526,14 +525,13 @@ for their guidance.}
 
 \appendix
 
-\section{Experimental Log}
+\section{Training Settings}
 \label{app:log}
 \sloppy
 
-The complete per-run, per-epoch experimental log (training and validation curves and the final
-held-out scores for every run) is included with the code at
-\url{https://github.com/mo-karbalaee/NEUROSEG}. Table~\ref{tab:hparams} lists the training settings
-shared across experiments; the final scores are reported in Section~\ref{sec:results}.
+Table~\ref{tab:hparams} lists the training settings shared across experiments; the final scores are
+reported in Section~\ref{sec:results}, and the complete per-run experimental log is in the
+repository (\url{https://github.com/mo-karbalaee/NEUROSEG}).
 
 \begin{table}[h]
 \centering
