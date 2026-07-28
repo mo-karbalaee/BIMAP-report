@@ -105,7 +105,7 @@ calcium-imaging segmentation is novel, and that novelty is the core contribution
     gap (Section~\ref{sec:discussion}).
 \end{itemize}
 
-\section{Background and Related Work}
+\subsection{Related Work}
 \label{sec:related}
 
 \paragraph{Neuron segmentation in calcium imaging.} Classical toolboxes such as Suite2p
@@ -129,7 +129,10 @@ V-JEPA extends this to video by predicting future or masked spatio-temporal regi
 latent-space predictor) and the VICReg regularizer, and specializes the pretext task to temporal
 prediction on calcium video.
 
-\section{Data}
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Data}
 \label{sec:data}
 
 \paragraph{Labeled benchmark: Neurofinder (mouse).} My labeled benchmark is Neurofinder
@@ -158,7 +161,7 @@ temporally consistent augmentation (a shared random crop, flip, and rotation acr
 brightness jitter and additive noise); the supervised fine-tuning branch is not augmented, so the
 two H1 arms differ only in initialization.
 
-\section{Method}
+\subsection{Model Architecture}
 \label{sec:method}
 
 \begin{figure}[t]
@@ -223,7 +226,7 @@ $\Delta F / F_0$ trace, with the baseline fluorescence $F_0$ estimated as the te
 each neuron's signal over time (a robust resting level). Fine-tuning uses binary cross-entropy and
 updates both the encoder and the head (true fine-tuning, not a frozen linear probe).
 
-\section{Experimental Protocol}
+\subsection{Experimental Protocol}
 \label{sec:protocol}
 
 \paragraph{Metrics.} Segmentation quality is measured with two complementary metrics. The
@@ -250,6 +253,18 @@ $\{10, 50, 75, 100\}\%$ and evaluation uses the fixed 20\% held-out test clips. 
 run is appended to a CSV experiment log with its run identifier, hypothesis, mode, fraction, losses,
 and test scores; checkpoints are written to a new file per run and never overwritten
 (Appendix~\ref{app:log}).
+
+\subsection{Implementation and Experiment Log}
+\label{sec:impl}
+
+The code is a pip-installable Python package (\texttt{neuroseg}) with a single CLI entry point; all
+paths and hyperparameters come from CLI flags or a YAML config. A one-command demo (\texttt{demo.sh})
+runs the full H1, H2, and H3 pipelines end to end on CPU on a real Neurofinder subset in about twenty
+minutes, writing checkpoints, figures, and the experiment log. Training, inference, models, and data
+loading are separated into distinct modules; checkpoints carry a JSON sidecar recording the exact
+architecture and metrics; and smoke tests run in continuous integration on every push. The repository
+(with a supervisor invited for grading) and the complete experiment log accompany this report;
+Appendix~\ref{app:log} describes the log schema and hyperparameters.
 
 \section{Results}
 \label{sec:results}
@@ -417,7 +432,7 @@ direct attack on residual representation collapse through tuning of the variance
 coefficients and EMA momentum, and a linear-probe diagnostic to measure representation quality
 independently of the fine-tuning schedule.
 
-\section{Limitations}
+\subsection{Limitations}
 \label{sec:limitations}
 
 I state the weaknesses plainly. \textbf{(1) Instance separation.} Detection F1 $\approx 0.2$ for all
@@ -433,18 +448,7 @@ of H2.} Cross-species transfer may partly reflect the similarity of calcium data
 than a segmentation-specific representation. Each of these is a known, bounded issue rather than a
 surprise, which is why I treat the pipeline as ready ground on which to push further.
 
-\section{Code and Experiment Log}
-\label{sec:impl}
-
-The code is a pip-installable Python package (\texttt{neuroseg}) with a single CLI entry point; all
-paths and hyperparameters come from CLI flags or a YAML config. A one-command demo (\texttt{demo.sh})
-runs the full H1, H2, and H3 pipelines end to end on CPU on a real Neurofinder subset in about twenty
-minutes, writing checkpoints, figures, and the experiment log. Training, inference, models, and data
-loading are separated into distinct modules; checkpoints carry a JSON sidecar recording the exact
-architecture and metrics; and smoke tests run in continuous integration on every push. The repository
-(with a supervisor invited for grading) and the complete experiment log accompany this report.
-
-\section{Conclusion}
+\subsection{Conclusion and Outlook}
 \label{sec:conclusion}
 
 This was a first attempt at a novel approach: self-supervised, JEPA-style neuron segmentation for
