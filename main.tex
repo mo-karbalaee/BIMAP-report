@@ -108,12 +108,12 @@ between neurons? Each is tested against explicit baselines and with statistical 
   \item \textbf{A JEPA model for calcium video.} A convolutional context encoder and an EMA target
     encoder are pretrained by predicting future latents under variance-covariance regularization,
     then a light head is fine-tuned for per-pixel segmentation (Section~\ref{sec:method}).
-  \item \textbf{Three hypotheses, honestly evaluated.} I test sample efficiency (H1), cross-species
+  \item \textbf{Evaluation of three hypotheses.} I test sample efficiency (H1), cross-species
     transfer (H2), and temporal representation stability (H3), each against explicit baselines and
     with statistical tests (Sections~\ref{sec:protocol}--\ref{sec:results}).
-  \item \textbf{A candid diagnosis.} I report where the approach does not yet win, trace the cause
-    to an under-converged self-supervised objective, and specify the levers I expect to close the
-    gap (Section~\ref{sec:discussion}).
+  \item \textbf{Diagnosis of the failure modes.} I identify where the approach does not yet win, trace
+    the cause to an under-converged self-supervised objective, and specify the levers I expect to
+    close the gap (Section~\ref{sec:discussion}).
 \end{itemize}
 
 \subsection{Related Work}
@@ -377,7 +377,7 @@ essentially on par with same-species pretraining: the per-clip penalty is only $
 a paired Wilcoxon test flags it as statistically significant ($n=120$, $p<10^{-20}$), the magnitude is
 negligible. Cross-species pretraining even slightly exceeds the from-scratch baseline ($+0.006$ Dice,
 $p<10^{-9}$). Representations therefore transfer across species at a cost too small to matter in
-practice. The honest caveat is interpretive: calcium activity patterns look broadly similar across
+practice. One caveat is interpretive: calcium activity patterns look broadly similar across
 species, so this transfer may reflect the similarity of the data as much as a transferable,
 segmentation-specific representation.
 
@@ -494,7 +494,7 @@ independently of the fine-tuning schedule.
 \subsection{Limitations}
 \label{sec:limitations}
 
-I state the weaknesses plainly. \textbf{(1) Instance separation.} Detection F1 is low for all
+The main limitations are the following. \textbf{(1) Instance separation.} Detection F1 is low for all
 models ($0.17$--$0.28$): the system does not yet separate touching neurons into instances. \textbf{(2) Single seed and
 single recording.} The headline H1/H3 numbers come from one seed and one recording split into train
 and test, so variance across seeds and recordings is not yet characterized. \textbf{(3) Under-converged
