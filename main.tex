@@ -7,7 +7,6 @@
 
 \ShortHeadings{NEUROSEG: Self-Supervised Neuron Segmentation for Calcium Imaging}{Karbalaee}
 \firstpageno{1}
-\raggedbottom
 
 % Custom header for the first page only: a submission line instead of the title.
 \makeatletter
@@ -73,7 +72,7 @@ however, is not yet science. Before any neuron's activity can be analyzed, each 
 recording must be \emph{segmented}. Segmentation is therefore the first and unavoidable step of
 essentially every calcium-imaging analysis pipeline.
 
-\begin{figure}[htbp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/activity-traces.png}
 \caption{Why segmentation matters. \emph{Left:} six example neurons located in one recording.
@@ -183,7 +182,7 @@ is not augmented, so the two H1 arms differ only in initialization.
 \subsection{Model Architecture}
 \label{sec:method}
 
-\begin{figure}[htbp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/pipeline.png}
 \caption{The NEUROSEG pipeline. The training lane pretrains a JEPA encoder on unlabeled video and
@@ -198,7 +197,7 @@ and a predictor operating in latent space, plus a regularizer that prevents repr
 (Figure~\ref{fig:jepa}). The model never reconstructs pixels as its main objective; it predicts
 representations.
 
-\begin{figure}[htbp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/jepa.png}
 \caption{The JEPA training scheme. A context branch encodes earlier frames and predicts the latent
@@ -260,7 +259,7 @@ same frame), and report the gap (within minus between) separately for each encod
 (Figure~\ref{fig:h3emb-compare}). No labels enter the similarity itself; the
 footprints only say which locations belong to which neuron.
 
-\begin{figure}[htbp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/h3-embedding-pool.png}
 \caption{Forming a per-neuron embedding in H3. An encoder turns a frame into a dense feature map, and
@@ -270,7 +269,7 @@ but differ only in training (self-supervised, supervised, random).}
 \label{fig:h3emb-pool}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.78\textwidth]{figures/h3-embedding-compare.png}
 \caption{Comparing the embeddings. Cosine similarity is measured within-neuron (same neuron across
@@ -327,7 +326,7 @@ experiment log; they are quoted verbatim, including where the self-supervised mo
 
 \subsection{H1: Does self-supervision help when labels are scarce?}
 
-\begin{table}[htbp]
+\begin{table}[t]
 \centering
 \begin{tabular}{lcccc}
 \toprule
@@ -358,7 +357,7 @@ the field level (Dice $0.70$--$0.71$ vs.\ $0.279$; detection F1 $0.26$--$0.28$ v
 comparison is not fair to Cellpose, which never sees the target recording while my models are trained
 on it.
 
-\begin{figure}[htbp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/h1-results.png}
 \caption{H1, field-level evaluation on held-out clips of the same recording. Dice (left) and
@@ -370,7 +369,7 @@ Cellpose on this metric; detection F1 stays low for all models.}
 
 \subsection{H2: Does self-supervision transfer across species?}
 
-\begin{table}[htbp]
+\begin{table}[t]
 \centering
 \begin{tabular}{lcccc}
 \toprule
@@ -398,7 +397,7 @@ practice. One caveat is interpretive: calcium activity patterns look broadly sim
 species, so this transfer may reflect the similarity of the data as much as a transferable,
 segmentation-specific representation.
 
-\begin{figure}[htbp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.72\textwidth]{figures/h2-transfer.png}
 \caption{H2 held-out mouse Dice versus labeled fraction, for three initializations: from-scratch,
@@ -410,7 +409,7 @@ pretraining transfers to mouse with a negligible penalty ($0.011$ Dice).}
 
 \subsection{H3: Are the learned features stable and distinct per neuron?}
 
-\begin{table}[htbp]
+\begin{table}[t]
 \centering
 \begin{tabular}{lccc}
 \toprule
@@ -440,7 +439,7 @@ similarity is significantly greater than between-neuron for every encoder (all $
 effect size is what separates them: negligible for the random encoder (Cohen's $d = 0.16$), medium for
 the self-supervised encoder ($d = 0.66$), and large for the supervised encoder ($d = 1.45$).
 
-\begin{figure}[htbp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/h3-stability.png}
 \caption{H3. Left: within- versus between-neuron cosine similarity for the self-supervised,
@@ -451,7 +450,7 @@ encoder sits well above random; the supervised encoder separates neurons best.}
 
 \subsection{Instance separation and the Cellpose comparison}
 
-\begin{table}[htbp]
+\begin{table}[t]
 \centering
 \begin{tabular}{lccccc}
 \toprule
