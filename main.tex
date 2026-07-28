@@ -11,6 +11,16 @@
 \ShortHeadings{NEUROSEG: Self-Supervised Neuron Segmentation for Calcium Imaging}{Karbalaee}
 \firstpageno{1}
 
+% Custom header for the first page only: a submission line instead of the title.
+\makeatletter
+\def\ps@bimapfirst{%
+  \let\@mkboth\@gobbletwo
+  \def\@oddhead{\hfill {\small\sc Final report of the BIMAP project, submitted to the AnKi Lab}\hfill}%
+  \def\@evenhead{}%
+  \def\@oddfoot{\hfill \small\rm \thepage \hfill}%
+  \def\@evenfoot{\hfill \small\rm \thepage \hfill}}
+\makeatother
+
 \begin{document}
 
 \title{NEUROSEG: A JEPA-Style Self-Supervised Pipeline for\\
@@ -23,6 +33,7 @@ Neuron Segmentation in Calcium Imaging}
 \editor{Biomedical Image Analysis Project (BIMAP), Summer Semester 2026}
 
 \maketitle
+\thispagestyle{bimapfirst}
 
 \begin{abstract}%
 Calcium imaging records the activity of large neuronal populations in living animals, but every
