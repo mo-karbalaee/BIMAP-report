@@ -179,7 +179,7 @@ is not augmented, so the two H1 arms differ only in initialization.
 \caption{The NEUROSEG pipeline. The training lane pretrains a JEPA encoder on unlabeled video and
 fine-tunes a segmentation head; the inference lane loads a recording, preprocesses it, segments it
 with either the JEPA model or the Cellpose default, extracts $\Delta F/F_0$ activity traces, and
-visualizes the result. Own figure.}
+visualizes the result.}
 \label{fig:pipeline}
 \end{figure}
 
@@ -194,7 +194,7 @@ representations.
 \caption{The JEPA training scheme. A context branch encodes earlier frames and predicts the latent
 of a later frame; a target branch encodes that later frame with an EMA target encoder. The two are
 matched in latent space under variance-covariance regularization. For segmentation, the pretrained
-context encoder is reused with a light head. Own figure.}
+context encoder is reused with a light head.}
 \label{fig:jepa}
 \end{figure}
 
@@ -256,7 +256,7 @@ footprints only say which locations belong to which neuron.
 \caption{Forming a per-neuron embedding in H3. An encoder turns a frame into a dense feature map, and
 the feature vectors at the locations inside a neuron's footprint are averaged into one embedding for
 that neuron in that frame. The identical procedure is run on encoders that share this architecture
-but differ only in training (self-supervised, supervised, random). Own figure.}
+but differ only in training (self-supervised, supervised, random).}
 \label{fig:h3emb-pool}
 \end{figure}
 
@@ -265,7 +265,7 @@ but differ only in training (self-supervised, supervised, random). Own figure.}
 \includegraphics[width=0.78\textwidth]{figures/h3-embedding-compare.png}
 \caption{Comparing the embeddings. Cosine similarity is measured within-neuron (same neuron across
 frames) and between-neuron (different neurons in the same frame); the gap, within minus between, is
-reported per encoder. Own figure.}
+reported per encoder.}
 \label{fig:h3emb-compare}
 \end{figure}
 \label{sec:protocol}
