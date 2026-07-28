@@ -95,7 +95,7 @@ calcium-imaging segmentation is novel, and that novelty is the core contribution
   \item \textbf{A reusable pipeline, not a script.} NEUROSEG is a single, pip-installable,
     end-to-end system with two modes (train, infer), modular and swappable stages, a consistent
     TIFF data-loader abstraction, versioned checkpoints, and a built-in experiment log. Every run
-    is reproducible from a config file with no hardcoded paths (Section~\ref{sec:pipeline}).
+    is reproducible from a config file with no hardcoded paths (Section~\ref{sec:repro}).
   \item \textbf{A JEPA model for calcium video.} A convolutional context encoder and an EMA target
     encoder are pretrained by predicting future latents under variance-covariance regularization,
     then a light head is fine-tuned for per-pixel segmentation (Section~\ref{sec:method}).
@@ -165,7 +165,7 @@ two H1 arms differ only in initialization.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/pipeline.png}
+\includegraphics[width=0.66\textwidth,keepaspectratio]{figures/pipeline.png}
 \caption{The NEUROSEG pipeline. The training lane pretrains a JEPA encoder on unlabeled video and
 fine-tunes a segmentation head; the inference lane loads a recording, preprocesses it, segments it
 with either the JEPA model or the Cellpose default, extracts $\Delta F/F_0$ activity traces, and
@@ -455,6 +455,7 @@ declare no competing interests.}
 
 \section{Experimental Log}
 \label{app:log}
+\sloppy
 
 Every training epoch is appended to \texttt{<output>/logs/runs.csv}; each run also writes one
 checkpoint-summary row carrying the held-out test scores. Tables~\ref{tab:h1}--\ref{tab:h3} are the
@@ -484,13 +485,18 @@ fractions for H1, source/target organisms for H2) are passed via config or CLI, 
 \label{tab:hparams}
 \end{table}
 
-\paragraph{Exact test statistics to finalize.} The per-clip Wilcoxon $p$-values (H1, H2), the
-Mann-Whitney $p$-values, and the field-level detection-F1 and Cellpose scores are produced by
-\texttt{scripts/stats\_tests.py}, \texttt{scripts/stats\_h2.py}, \texttt{scripts/detection\_f1.py},
-and \texttt{scripts/cellpose\_baseline.py}. The qualitative conclusions above (H1 significant but
-$\Delta\approx0.02$ with sign flip; H2 no significant cross-species penalty; H3 Cohen's $d=0.66$ vs.\
-$1.45$; detection F1 $\approx 0.2$) follow their output; the few exact values still marked
-\pending{like this} are to be pasted from a final run.
+\paragraph{Exact test statistics to finalize.} A small number of exact values are produced by the
+analysis scripts and pasted into the tables above:
+\begin{itemize}
+  \item \texttt{scripts/stats\_tests.py}: per-clip Wilcoxon (H1) and Mann-Whitney with Cohen's $d$ (H3);
+  \item \texttt{scripts/stats\_h2.py}: per-clip Wilcoxon, cross- versus same-species (H2);
+  \item \texttt{scripts/detection\_f1.py}: field-level detection F1 for my checkpoints;
+  \item \texttt{scripts/cellpose\_baseline.py}: Cellpose Dice and detection F1.
+\end{itemize}
+The qualitative conclusions above (H1 significant but $\Delta\approx0.02$ with sign flip; H2 no
+significant cross-species penalty; H3 Cohen's $d=0.66$ vs.\ $1.45$; detection F1 $\approx 0.2$)
+follow their output; the few exact values still marked \pending{like this} are to be pasted from a
+final run.
 
 \vskip 0.2in
 \bibliography{references}
