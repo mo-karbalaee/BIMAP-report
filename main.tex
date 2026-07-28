@@ -38,11 +38,9 @@ recording must first be segmented into individual neurons before any activity ca
 Manual annotation is the bottleneck: it is slow, subjective, and does not scale. I ask whether
 self-supervised learning, the paradigm behind modern language and vision foundation models, can
 reduce the dependence on scarce manual labels for this task. I present NEUROSEG, an
-end-to-end pipeline that segments neuronal somata in calcium-imaging recordings using a
-Joint-Embedding Predictive Architecture (JEPA): a convolutional context encoder and an
-EMA target encoder are pretrained on unlabeled video by predicting future frames in latent
-space under variance-covariance regularization, after which a light convolutional head is
-fine-tuned for segmentation. I evaluate three hypotheses on the Neurofinder benchmark and on
+end-to-end pipeline that segments neuronal somata in calcium-imaging recordings with a
+Joint-Embedding Predictive Architecture (JEPA) pretrained on unlabeled video and fine-tuned for
+segmentation. I evaluate three hypotheses on the Neurofinder benchmark and on
 cross-species (Drosophila and zebrafish) recordings: whether self-supervision helps when labels
 are scarce (H1), whether representations transfer across species (H2), and whether the learned
 features are temporally stable and distinct per neuron (H3). The results are a first attempt at
