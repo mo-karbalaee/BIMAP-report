@@ -72,13 +72,13 @@ however, is not yet science. Before any neuron's activity can be analyzed, each 
 recording must be \emph{segmented}. Segmentation is therefore the first and unavoidable step of
 essentially every calcium-imaging analysis pipeline.
 
-Strong automated tools for this step already exist: classical toolboxes that rely on hand-tuned
-assumptions about the activity signal, and deep-learning segmenters that perform well but are trained
-on hand-annotated data \citep{pachitariu2017suite2p,giovannucci2019caiman,stringer2021cellpose}. My
-starting point is not that segmentation is unsolved, but that the best methods share one limiting
-resource: labeled calcium-imaging data is scarce and expensive to produce, so segmentation still
-leans on slow, subjective manual annotation whenever those labels are missing. Unlabeled calcium
-video, by contrast, is abundant: any recording session produces it for free.
+This step is done either manually, which is slow, subjective, and does not scale, or automatically.
+Automated methods already exist, from classical toolboxes to deep-learning segmenters
+\citep{pachitariu2017suite2p,giovannucci2019caiman,stringer2021cellpose}, and this work adds one more.
+What motivates my particular choice of method is a practical asymmetry: the strongest automated
+segmenters are trained on hand-annotated data, and labeled calcium-imaging data is scarce and
+expensive, whereas unlabeled calcium video is abundant, since any recording session produces it for
+free.
 
 This asymmetry is precisely the setting in which self-supervised learning (SSL) has transformed
 other fields. Large language models learn language by predicting held-out words in unlabeled text;
@@ -92,8 +92,8 @@ I investigate this question with a Joint-Embedding Predictive Architecture (JEPA
 JEPA predicts the future \emph{representation} of a frame from the present representation, in a
 learned latent space rather than in pixel space. This forces the model to abstract away photometric
 noise, which is severe in calcium imaging, and to focus on the structure that persists over time,
-which is exactly what a neuron is. To my knowledge, adapting JEPA-style self-supervision to
-calcium-imaging segmentation is novel, and that novelty is the core contribution of this work.
+which is exactly what a neuron is. This report builds such a model and evaluates it as one automatic
+approach to neuron segmentation.
 
 Concretely, I ask three questions. \textbf{(H1)} Does self-supervised pretraining improve
 segmentation when labeled data is scarce? \textbf{(H2)} Do representations learned on one species
