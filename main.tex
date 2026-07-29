@@ -245,8 +245,12 @@ not a frozen linear probe).
 consistently, so it needs one embedding vector per neuron per frame. The way I extract this embedding
 is a generic operation on any encoder of this architecture, and that is exactly what makes H3 a fair
 comparison: I apply the \emph{identical} steps to encoders that share the architecture and differ only
-in how their weights were trained, self-supervised (JEPA), supervised (the same network trained
-end-to-end on the segmentation labels), and untrained (randomly initialized); the self-supervised encoder is
+in how their weights were trained. The three are \emph{self-supervised} (weights from JEPA pretraining
+on unlabeled video), \emph{supervised} (the same network trained end-to-end on the segmentation
+labels), and \emph{untrained}. By untrained I mean the same network left at the random weights it is
+initialized with, never trained on anything; it is not a chance or zero baseline but an
+architecture-only floor, measuring what the convolutional structure alone produces before any
+learning. Any result above it is what training actually added. The self-supervised encoder is
 evaluated in both its same-species and cross-species forms. In every case the encoder preserves spatial
 resolution, so its output for a frame is a dense feature map with a $32$-dimensional feature vector at
 every location. For a given neuron I take its \emph{footprint}, the set of image locations the label
