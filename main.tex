@@ -48,8 +48,8 @@ features are temporally stable and distinct per neuron (H3). The results are a f
 a novel approach rather than a decisive win. Self-supervised pretraining does not convincingly beat
 a from-scratch baseline: the difference changes sign across label fractions and is in fact worst in
 the scarce-label regime where the hypothesis predicted its largest gain. Cross-species representations transfer to
-mouse with no practically meaningful penalty relative to same-species pretraining, and even slightly
-exceed training from scratch. The self-supervised encoder separates neurons in time well above an
+mouse with no practically meaningful penalty relative to same-species pretraining, and perform on par
+with training from scratch. The self-supervised encoder separates neurons in time well above an
 untrained baseline, though a supervised encoder separates them best. I trace the absence of a decisive win to a
 self-supervised objective that under-converges, and I lay out the concrete levers that I believe
 will let the approach outperform the baselines.
@@ -171,7 +171,9 @@ time-aggregated footprint, which motivates the temporal pooling in my model
 \paragraph{Unlabeled cross-species data.} For self-supervised pretraining I additionally use
 unlabeled Drosophila-larva and zebrafish calcium video. No labels are needed for pretraining, so this
 data is directly usable, and its two non-mouse species are what make the cross-species question (H2)
-possible.
+possible. This pool comprises \textcolor{red}{[$\approx$\,N frames across M recordings, to fill]};
+because H1's central limitation is the absence of unlabeled data beyond the target recording, the
+size of this pool is the most consequential quantity for the approach and I state it explicitly.
 
 \paragraph{Preprocessing.} Each recording is intensity-normalized and resized to a common
 $128\times128$ resolution, then divided into short fixed-length temporal clips. Self-supervised
@@ -316,11 +318,45 @@ pools are unpaired, so I use the \textbf{Mann-Whitney $U$ test} \citep{mannwhitn
 significance, \textbf{Cohen's $d$} \citep{cohen1988} for effect size, and a \textbf{bootstrap}
 \citep{efron1979} 95\% confidence interval for the gap.
 
-\paragraph{Splits and logging.} Unless stated otherwise, one labeled recording is split 80/20 into
-train and test with a fixed seed; fine-tuning uses the train portion at labeled fractions
-$\{10, 50, 75, 100\}\%$ and evaluation uses the fixed 20\% held-out test clips. Every run is logged
-with its hypothesis, its setting, the per-epoch losses and validation scores, and the final held-out
-test scores; the complete log is in the repository.
+These tests carry an important caveat. The per-clip scores are not independent draws: they all come
+from one recording, one split, and one seed, so the effective sample size for the scientific question
+(``does self-supervision help?'') is one, not $120$. The paired tests therefore only ask whether two
+already-fitted models differ on these correlated clips, which is why even a $0.017$ Dice difference
+reaches $p<10^{-19}$. I report the $p$-values as descriptive of the fitted models and lead with effect
+size; I do not read them as inference that self-supervision helps in general. Establishing that would
+need several seeds and several recordings, with clip scores nested inside recording
+(Section~\ref{sec:limitations}).
+
+\paragraph{Splits and logging.} Unless stated otherwise, all experiments use one labeled recording,
+Neurofinder 00.00 (mouse cortex, $330$ annotated neurons), split 80/20 into train and test with a
+fixed seed. This yields about $600$ temporal clips: $120$ held out for testing and used only for final
+scoring, and $\sim 480$ for training, of which the labeled fractions $\{10, 50, 75, 100\}\%$ use
+roughly $48$, $240$, $360$, and $480$ clips. The binarization threshold is fixed at $0.5$ and never
+tuned, and a validation split disjoint from the test clips monitors training, so no reported score is
+selected on the test set. As a deliberate noise estimate, the from-scratch baseline was trained
+independently for H1 and H2 (Tables~\ref{tab:h1},~\ref{tab:h2}); the two runs differ by up to $0.011$
+Dice, which bounds the run-to-run variation of this setup. Differences smaller than about $0.02$ Dice
+should therefore be read as within noise. Every run is logged; the complete log is in the repository.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{llll}
+\toprule
+Setting & Value & Setting & Value \\
+\midrule
+Latent channels $d_{\mathrm{stc}}$ & 32 & Clip length $T$ & 5 \\
+Encoder / predictor hidden & 32 & Batch size & 4 \\
+Seg-head hidden & 16 & Learning rate & $10^{-3}$ \\
+EMA momentum & 0.996 & Pretrain epochs & 20 (best val) \\
+VICReg std / cov & 10 / 100 & Fine-tune epochs & 40 \\
+Reconstruction weight & 1.0 & Threshold & 0.5 (fixed) \\
+Validation / test split & 10\% / 20\% & Seed & 1 \\
+\bottomrule
+\end{tabular}
+\caption{Training settings, shared across all experiments. Hypothesis-specific choices (labeled
+fractions for H1, source and target organisms for H2) vary per experiment.}
+\label{tab:hparams}
+\end{table}
 
 \section{Results}
 \label{sec:results}
@@ -395,11 +431,14 @@ leakage-free by construction: the encoder is pretrained on species the mouse tes
 Table~\ref{tab:h2} and Figure~\ref{fig:h2} show that the cross-species encoder fine-tunes to mouse
 essentially on par with same-species pretraining: the per-clip penalty is only $0.011$ Dice, and while
 a paired Wilcoxon test flags it as statistically significant ($n=120$, $p<10^{-20}$), the magnitude is
-negligible. Cross-species pretraining even slightly exceeds the from-scratch baseline ($+0.006$ Dice,
-$p<10^{-9}$). Representations therefore transfer across species at a cost too small to matter in
-practice. One caveat is interpretive: calcium activity patterns look broadly similar across
-species, so this transfer may reflect the similarity of the data as much as a transferable,
-segmentation-specific representation.
+negligible. Against the from-scratch baseline the picture is mixed and small: from-scratch is slightly
+ahead at 10\%, 50\%, and 75\%, and behind only at 100\%, and the paired difference at 100\% is
+$+0.006$ Dice in favour of cross-species pretraining. All of these gaps are within the run-to-run
+noise floor discussed below, so the fair reading is that cross-species pretraining is on par with, not
+better than, training from scratch. Representations therefore transfer across species at a cost too
+small to matter, but they do not beat a model trained directly on the target. One caveat is
+interpretive: calcium activity patterns look broadly similar across species, so this transfer may
+reflect the similarity of the data as much as a transferable, segmentation-specific representation.
 
 \begin{figure}[t]
 \centering
@@ -432,7 +471,9 @@ untrained baseline; the supervised encoder is strongest.}
 \label{tab:h3}
 \end{table}
 
-The hypothesis is that a good encoder keeps a neuron looking like itself over time while distinct
+Unlike H1 and H2, H3 is a diagnostic of the learned representation rather than a segmentation task: it
+asks what the encoder encodes about neuron identity, not how well the full pipeline segments. The
+hypothesis is that a good encoder keeps a neuron looking like itself over time while distinct
 from other neurons. Using the per-neuron embeddings of Figure~\ref{fig:h3emb-pool} (no labels enter
 the metric itself), Table~\ref{tab:h3} and Figure~\ref{fig:h3} show a clear, positive gap for the
 self-supervised encoder
@@ -442,6 +483,17 @@ The supervised encoder has the largest gap ($0.208$). A Mann-Whitney test confir
 similarity is significantly greater than between-neuron for every encoder (all $p \approx 0$), but the
 effect size is what separates them: negligible for the untrained encoder (Cohen's $d = 0.16$), medium for
 the self-supervised encoder ($d = 0.66$), and large for the supervised encoder ($d = 1.45$).
+
+Two caveats temper this. First, the supervised encoder was trained end-to-end on the very footprint
+masks that define the pooling regions here, so maximizing within-footprint consistency and
+between-footprint contrast is close to what its training objective already asks for; its $d = 1.45$
+is therefore best read as a near-tautological upper reference, not a fair competitor. The informative
+comparison is self-supervised versus untrained, where the metric is not built into training. Second,
+the untrained encoder sits at $0.978 / 0.972$ cosine, an almost degenerate, highly anisotropic
+embedding space, so raw gaps are not strictly comparable across encoders with different feature norms;
+a scale-free readout (for example the area under a within-versus-between similarity discriminator, or
+the gap standardized by the between-neuron spread) would make the magnitudes directly comparable and
+is left for future work.
 
 \begin{figure}[t]
 \centering
@@ -474,13 +526,25 @@ recover far fewer instances than there are neurons.}
 
 At the field level (Table~\ref{tab:field}), my trained models beat the zero-shot Cellpose reference on
 both pixel overlap (Dice $0.70$--$0.71$ vs.\ $0.279$) and instance detection (F1 $0.26$--$0.28$ vs.\
-$0.170$). But every detection F1 is low: the segmenter covers the right pixels yet merges adjacent
-somata into single blobs, recovering only about $155$ instances of the $330$ neurons present. This is
-the clearest weakness of the current system, and it is visible to the eye: the Cellpose masks look
-cleaner and more stable even though my models score higher on both metrics. One protocol caveat: my
-models form the field-level mask by averaging their per-clip probability maps, whereas Cellpose
-segments a single temporal max-projection, so the two masks are built differently even though both are
-scored against the same footprint (Section~\ref{sec:limitations}).
+$0.170$). Two things must be said about this comparison before reading anything into it. Cellpose was
+run with automatic diameter estimation (\texttt{diameter=None}); its Dice of $0.279$ is low for a
+generalist cell segmenter, so it may simply be misconfigured for these somata rather than genuinely
+weak, and it is my only external anchor, so I treat ``beats Cellpose'' with caution. Separately, the
+two masks are built differently (my models average their per-clip probability maps into one
+field-level mask; Cellpose segments a single temporal max-projection), even though both are scored
+against the same footprint.
+
+More important than the comparison is that \emph{every} detection F1 is low: the segmenter covers the
+right pixels yet merges adjacent somata into single blobs, recovering only about $155$ distinct
+instances of the $330$ neurons present. This is not a minor metric gap. The stated purpose of the
+pipeline (Section~\ref{sec:intro}) is to produce a per-neuron $\Delta F/F_0$ trace, and the trace of a
+merged blob is the \emph{sum} of two neurons' signals, a corrupted readout rather than a slightly
+worse one. Recovering fewer than half the neurons with merging therefore undermines the deliverable,
+not just a score. I should also note that the merging explanation, though consistent with the visible
+masks, is asserted rather than demonstrated here: a distance-transform watershed or peak-splitting
+ablation on the probability maps would confirm merging or, alternatively, reveal that recall is
+instead limited by neurons that are never active in the movie. That diagnostic is left for future work
+(Section~\ref{sec:limitations}).
 
 \section{Discussion}
 \label{sec:discussion}
@@ -504,13 +568,26 @@ makes me believe the ceiling is much higher than these numbers. Concretely, a de
 would be a positive and significant Dice gap at the 10\% fraction that holds across seeds and
 recordings, rather than the sign-flipping difference I observe now.
 
-\paragraph{The levers I expect to close the gap.} In order of expected value: (i) a genuinely larger
-and more diverse \emph{unlabeled} pretraining pool, which is the precondition H1 actually requires and
-the lever SSL responds to most reliably; (ii) a stronger self-supervised backbone, with a better
-predictor and target encoder and a longer, better-converged pretraining schedule; and (iii) a
-direct attack on residual representation collapse through tuning of the variance-covariance
-coefficients and EMA momentum, and a linear-probe diagnostic to measure representation quality
-independently of the fine-tuning schedule.
+\paragraph{An alternative I have not ruled out: the pretext task may be too easy.} My explanation so
+far is a data and convergence budget, but there is a competing hypothesis that would produce the same
+flat loss curve and deserves testing first. Calcium video has essentially static anatomy with only
+brightness fluctuating, so predicting frame $t{+}1$'s latent from frame $t$'s may be solvable by
+near-identity: the encoder can copy the present latent and be almost right. This is a different failure
+from collapse. The features can be perfectly informative and the task still be nearly free, in which
+case the objective teaches the encoder very little and \emph{more data would not help}. It is cheap to
+check: report the prediction error of a trivial copy-the-previous-latent predictor as a baseline, and
+inspect the temporal gap between context and target frames. If identity nearly matches the trained
+predictor, the remedy is a harder pretext task (larger temporal offsets, or masked spatio-temporal
+blocks in the style of V-JEPA \citep{bardes2024vjepa}), not more video. I rank running this diagnostic
+above simply scaling the data.
+
+\paragraph{The levers I expect to close the gap.} Assuming the pretext task is non-trivial, then in
+order of expected value: (i) a genuinely larger and more diverse \emph{unlabeled} pretraining pool,
+the precondition H1 actually requires and the lever SSL responds to most reliably; (ii) a stronger
+self-supervised backbone, with a better predictor and target encoder and a longer, better-converged
+pretraining schedule; and (iii) a direct attack on residual representation collapse through tuning of
+the variance-covariance coefficients and EMA momentum, and a linear-probe diagnostic to measure
+representation quality independently of the fine-tuning schedule.
 
 \subsection{Limitations}
 \label{sec:limitations}
@@ -525,8 +602,12 @@ are trained on the target recording while Cellpose is zero-shot, so ``beats Cell
 result. \textbf{(5) Protocol inconsistency.} The per-clip and field-level Dice evaluations differ in
 resolution and in how a single mask is formed; unifying them is a priority. \textbf{(6) Interpretation
 of H2.} Cross-species transfer may partly reflect the similarity of calcium data across species rather
-than a segmentation-specific representation. Each of these is a known, bounded issue rather than a
-surprise, which is why I treat the pipeline as ready ground on which to push further.
+than a segmentation-specific representation. \textbf{(7) Untested architectural choice.} I adopt JEPA
+over simpler joint-embedding methods (for example VICReg or BYOL on augmented pairs) on the argument
+that latent prediction abstracts photometric noise, but I do not ablate that choice against those
+baselines, so it remains a motivated preference rather than a demonstrated one. Each of these is a
+known, bounded issue rather than a surprise, which is why I treat the pipeline as ready ground on which
+to push further.
 
 \subsection{Conclusion and Outlook}
 \label{sec:conclusion}
