@@ -49,8 +49,8 @@ a novel approach rather than a decisive win. Self-supervised pretraining does no
 a from-scratch baseline: the difference changes sign across label fractions and is in fact worst in
 the scarce-label regime where the hypothesis predicted its largest gain. Cross-species representations transfer to
 mouse with no practically meaningful penalty relative to same-species pretraining, and even slightly
-exceed training from scratch. The self-supervised encoder separates neurons in time well above a
-random baseline, though a supervised encoder separates them best. I trace the absence of a decisive win to a
+exceed training from scratch. The self-supervised encoder separates neurons in time well above an
+untrained baseline, though a supervised encoder separates them best. I trace the absence of a decisive win to a
 self-supervised objective that under-converges, and I lay out the concrete levers that I believe
 will let the approach outperform the baselines.
 \end{abstract}
@@ -246,7 +246,7 @@ consistently, so it needs one embedding vector per neuron per frame. The way I e
 is a generic operation on any encoder of this architecture, and that is exactly what makes H3 a fair
 comparison: I apply the \emph{identical} steps to encoders that share the architecture and differ only
 in how their weights were trained, self-supervised (JEPA), supervised (the same network trained
-end-to-end on the segmentation labels), and random (untrained); the self-supervised encoder is
+end-to-end on the segmentation labels), and untrained (randomly initialized); the self-supervised encoder is
 evaluated in both its same-species and cross-species forms. In every case the encoder preserves spatial
 resolution, so its output for a frame is a dense feature map with a $32$-dimensional feature vector at
 every location. For a given neuron I take its \emph{footprint}, the set of image locations the label
@@ -265,7 +265,7 @@ footprints only say which locations belong to which neuron.
 \caption{Forming a per-neuron embedding in H3. An encoder turns a frame into a dense feature map, and
 the feature vectors at the locations inside a neuron's footprint are averaged into one embedding for
 that neuron in that frame. The identical procedure is run on encoders that share this architecture
-but differ only in training (self-supervised, supervised, random).}
+but differ only in training (self-supervised, supervised, untrained).}
 \label{fig:h3emb-pool}
 \end{figure}
 
@@ -415,7 +415,7 @@ pretraining transfers to mouse with a negligible penalty ($0.011$ Dice).}
 \toprule
 Encoder & Within-neuron & Between-neuron & Gap (within $-$ between) \\
 \midrule
-Random (no pretrain)   & 0.978 & 0.972 & 0.007 \\
+Untrained (random init) & 0.978 & 0.972 & 0.007 \\
 Cross-species SSL       & 0.968 & 0.940 & 0.028 \\
 Same-species SSL        & 0.875 & 0.818 & 0.057 \\
 Supervised              & 0.793 & 0.585 & \textbf{0.208} \\
@@ -424,7 +424,7 @@ Supervised              & 0.793 & 0.585 & \textbf{0.208} \\
 \caption{H3 temporal representation stability. Mean cosine similarity of pooled per-neuron
 embeddings: the same neuron across frames (within) versus different neurons in the same frame
 (between). A larger gap means the encoder tells neurons apart. Self-supervision is well above the
-random baseline; the supervised encoder is strongest.}
+untrained baseline; the supervised encoder is strongest.}
 \label{tab:h3}
 \end{table}
 
@@ -432,19 +432,19 @@ The hypothesis is that a good encoder keeps a neuron looking like itself over ti
 from other neurons. Using the per-neuron embeddings of Figure~\ref{fig:h3emb-pool} (no labels enter
 the metric itself), Table~\ref{tab:h3} and Figure~\ref{fig:h3} show a clear, positive gap for the
 self-supervised encoder
-(same-species gap $0.057$, cross-species $0.028$), far above the near-zero random baseline
+(same-species gap $0.057$, cross-species $0.028$), far above the near-zero untrained baseline
 ($0.007$): self-supervision learned to distinguish neurons without ever seeing a segmentation label.
 The supervised encoder has the largest gap ($0.208$). A Mann-Whitney test confirms that within-neuron
 similarity is significantly greater than between-neuron for every encoder (all $p \approx 0$), but the
-effect size is what separates them: negligible for the random encoder (Cohen's $d = 0.16$), medium for
+effect size is what separates them: negligible for the untrained encoder (Cohen's $d = 0.16$), medium for
 the self-supervised encoder ($d = 0.66$), and large for the supervised encoder ($d = 1.45$).
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/h3-stability.png}
 \caption{H3. Left: within- versus between-neuron cosine similarity for the self-supervised,
-supervised, and random encoders. Right: the gap (within $-$ between) for each. The self-supervised
-encoder sits well above random; the supervised encoder separates neurons best.}
+supervised, and untrained encoders. Right: the gap (within $-$ between) for each. The self-supervised
+encoder sits well above the untrained one; the supervised encoder separates neurons best.}
 \label{fig:h3}
 \end{figure}
 
