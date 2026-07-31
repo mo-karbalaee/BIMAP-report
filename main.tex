@@ -538,6 +538,26 @@ ablation on the probability maps would confirm merging or, alternatively, reveal
 instead limited by neurons that are never active in the movie. That diagnostic is left for future work
 (Section~\ref{sec:limitations}).
 
+\subsection{Training dynamics}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/training-curves.png}
+\caption{Error over epochs. \emph{Left:} during self-supervised pretraining the training prediction
+loss falls quickly, but the held-out prediction loss rises, so the objective is minimized on the
+training clips without generalizing. \emph{Right:} during fine-tuning, validation Dice climbs to
+$\approx 0.89$ for both the self-supervised and from-scratch models, and the two curves overlap
+throughout.}
+\label{fig:curves}
+\end{figure}
+
+Figure~\ref{fig:curves} shows how the error behaves epoch to epoch. During pretraining the training
+prediction loss falls quickly (from $1.47$ to $0.32$) while the held-out prediction loss instead rises
+(from $4.9$ to $7.3$): the objective is minimized on the training clips but does not generalize, which
+is the direct symptom of the under-converged pretraining discussed in Section~\ref{sec:discussion}.
+During fine-tuning, validation Dice climbs noisily to about $0.89$ for both the self-supervised and the
+from-scratch model, and the two curves overlap throughout, consistent with the tie reported for H1.
+
 \section{Discussion}
 \label{sec:discussion}
 
