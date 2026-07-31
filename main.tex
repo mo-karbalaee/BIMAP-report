@@ -171,9 +171,10 @@ time-aggregated footprint, which motivates the temporal pooling in my model
 \paragraph{Unlabeled cross-species data.} For self-supervised pretraining I additionally use
 unlabeled Drosophila-larva and zebrafish calcium video. No labels are needed for pretraining, so this
 data is directly usable, and its two non-mouse species are what make the cross-species question (H2)
-possible. This pool comprises \textcolor{red}{[$\approx$\,N frames across M recordings, to fill]};
-because H1's central limitation is the absence of unlabeled data beyond the target recording, the
-size of this pool is the most consequential quantity for the approach and I state it explicitly.
+possible. This pool comprises roughly $43{,}000$ frames across $20$ cross-species
+recordings; because H1's central limitation is the absence of unlabeled data beyond the target
+recording, the size of this pool is the most consequential quantity for the approach and I state it
+explicitly.
 
 \paragraph{Preprocessing.} Each recording is intensity-normalized and resized to a common
 $128\times128$ resolution, then divided into short fixed-length temporal clips. Self-supervised
