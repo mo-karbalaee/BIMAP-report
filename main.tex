@@ -52,7 +52,7 @@ the scarce-label regime where the hypothesis predicted its largest gain. Cross-s
 mouse with no practically meaningful penalty relative to same-species pretraining, and perform on par
 with training from scratch. The self-supervised encoder learns to separate neurons in time
 without labels, though a supervised encoder separates them best. I trace the absence of a decisive win to a
-self-supervised objective that under-converges, and I lay out the concrete levers that I believe
+self-supervised objective that overfits, and I lay out the concrete levers that I believe
 will let the approach outperform the baselines.
 \end{abstract}
 
@@ -123,7 +123,7 @@ between neurons? Each is tested against explicit baselines and with statistical 
     transfer (H2), and temporal representation stability (H3), each against explicit baselines and
     with statistical tests (Sections~\ref{sec:protocol}--\ref{sec:results}).
   \item \textbf{Diagnosis of the failure modes.} I identify where the approach does not yet win, trace
-    the cause to an under-converged self-supervised objective, and specify the levers I expect to
+    the cause to an overfitting self-supervised objective, and specify the levers I expect to
     close the gap (Section~\ref{sec:discussion}).
 \end{itemize}
 
@@ -554,7 +554,7 @@ throughout.}
 Figure~\ref{fig:curves} shows how the error behaves epoch to epoch. During pretraining the training
 prediction loss falls quickly (from $1.47$ to $0.32$) while the held-out prediction loss instead rises
 (from $4.9$ to $7.3$): the objective is minimized on the training clips but does not generalize, which
-is the direct symptom of the under-converged pretraining discussed in Section~\ref{sec:discussion}.
+is the direct symptom of the overfitting discussed in Section~\ref{sec:discussion}.
 During fine-tuning, validation Dice climbs noisily to about $0.89$ for both the self-supervised and the
 from-scratch model, and the two curves overlap throughout, consistent with the tie reported for H1.
 
@@ -575,7 +575,7 @@ and a configurable, matched fine-tuning learning rate), which is why the current
 than a loss. The fourth is not yet fixed at scale, and it is the reason a tie is the ceiling of the
 present setup: with equal data, self-supervision has nothing to win with. That the approach already
 matches a strong baseline, transfers across species at no cost, and induces per-neuron temporal
-structure without labels, all while the self-supervised objective still under-converges, is what
+structure without labels, all while the self-supervised objective still overfits, is what
 makes me believe the ceiling is much higher than these numbers. Concretely, a decisive H1 result
 would be a positive and significant Dice gap at the 10\% fraction that holds across seeds and
 recordings, rather than the sign-flipping difference I observe now.
@@ -590,16 +590,16 @@ how copyable the target actually is. On held-out clips, consecutive-frame latent
 encoder have a mean cosine of only $0.54$ and a relative MSE near $1.0$, barely above latents from
 different clips at the same location ($0.52$). The target is therefore \emph{not} copyable: an identity
 predictor would not solve the task, so triviality does not explain the flat loss. If anything, that
-temporal neighbours are almost as far apart as unrelated frames points back to weak, under-converged
+temporal neighbours are almost as far apart as unrelated frames points back to weak, non-generalizing
 temporal features rather than an easy task. A harder pretext task (larger temporal offsets, or masked
 spatio-temporal blocks in the style of V-JEPA \citep{bardes2024vjepa}) is still worth trying, but the
-more likely lever is a better-converged backbone with more data.
+more likely levers are more and more diverse unlabeled data and stronger regularization.
 
 \paragraph{The levers I expect to close the gap.} Assuming the pretext task is non-trivial, then in
 order of expected value: (i) a genuinely larger and more diverse \emph{unlabeled} pretraining pool,
 the precondition H1 actually requires and the lever SSL responds to most reliably; (ii) a stronger
-self-supervised backbone, with a better predictor and target encoder and a longer, better-converged
-pretraining schedule; and (iii) a direct attack on residual representation collapse through tuning of
+self-supervised backbone, with a better predictor and target encoder and stronger regularization to
+curb the overfitting seen here; and (iii) a direct attack on residual representation collapse through tuning of
 the variance-covariance coefficients and EMA momentum, and a linear-probe diagnostic to measure
 representation quality independently of the fine-tuning schedule.
 
@@ -609,9 +609,9 @@ representation quality independently of the fine-tuning schedule.
 The main limitations are the following. \textbf{(1) Instance separation.} Detection F1 is low for all
 models ($0.17$--$0.28$): the system does not yet separate touching neurons into instances. \textbf{(2) Single seed and
 single recording.} The headline H1/H3 numbers come from one seed and one recording split into train
-and test, so variance across seeds and recordings is not yet characterized. \textbf{(3) Under-converged
-pretraining.} The self-supervised objective does not fully converge under the current schedule and
-data budget, which caps any benefit it can confer. \textbf{(4) Unfair Cellpose comparison.} My models
+and test, so variance across seeds and recordings is not yet characterized. \textbf{(3) Overfitting
+pretraining.} The self-supervised objective is minimized on the training clips but does not generalize
+(training loss falls while held-out loss rises), which caps the benefit it can confer. \textbf{(4) Unfair Cellpose comparison.} My models
 are trained on the target recording while Cellpose is zero-shot, so ``beats Cellpose'' overstates the
 result. \textbf{(5) Protocol inconsistency.} The per-clip and field-level Dice evaluations differ in
 resolution and in how a single mask is formed; unifying them is a priority. \textbf{(6) Interpretation
@@ -630,7 +630,7 @@ This was a first attempt at a novel approach: self-supervised, JEPA-style neuron
 calcium imaging. I did not decisively beat the baselines, and I understand exactly why. The
 self-supervised model already matches a strong supervised baseline, transfers across species with no
 meaningful penalty, and learns to tell neurons apart in time without a single label, all while its
-self-supervised objective still under-converges. I have a working pipeline and the
+self-supervised objective still overfits. I have a working pipeline and the
 models and implementations to keep working on all three hypotheses. The ground work is done. There is
 room for improvement and it is worth the effort: a stronger self-supervised backbone, a direct attack
 on representation collapse, and much more unlabeled calcium video are, I am convinced, enough to push
