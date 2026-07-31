@@ -568,18 +568,20 @@ makes me believe the ceiling is much higher than these numbers. Concretely, a de
 would be a positive and significant Dice gap at the 10\% fraction that holds across seeds and
 recordings, rather than the sign-flipping difference I observe now.
 
-\paragraph{An alternative I have not ruled out: the pretext task may be too easy.} My explanation so
-far is a data and convergence budget, but there is a competing hypothesis that would produce the same
-flat loss curve and deserves testing first. Calcium video has essentially static anatomy with only
-brightness fluctuating, so predicting frame $t{+}1$'s latent from frame $t$'s may be solvable by
-near-identity: the encoder can copy the present latent and be almost right. This is a different failure
-from collapse. The features can be perfectly informative and the task still be nearly free, in which
-case the objective teaches the encoder very little and \emph{more data would not help}. It is cheap to
-check: report the prediction error of a trivial copy-the-previous-latent predictor as a baseline, and
-inspect the temporal gap between context and target frames. If identity nearly matches the trained
-predictor, the remedy is a harder pretext task (larger temporal offsets, or masked spatio-temporal
-blocks in the style of V-JEPA \citep{bardes2024vjepa}), not more video. I rank running this diagnostic
-above simply scaling the data.
+\paragraph{An alternative I tested: is the pretext task too easy?} Before attributing the flat loss to
+budget alone, I considered a competing hypothesis: because calcium video has essentially static anatomy
+with only brightness fluctuating, predicting frame $t{+}1$'s latent from frame $t$'s might be solvable
+by near-identity, in which case the objective would teach the encoder very little and \emph{more data
+would not help}. As a partial check (the definitive test, comparing the trained predictor against an
+identity predictor, needs the pretraining predictor, which the checkpoints do not store) I measured
+how copyable the target actually is. On held-out clips, consecutive-frame latents from the pretrained
+encoder have a mean cosine of only $0.54$ and a relative MSE near $1.0$, barely above latents from
+different clips at the same location ($0.52$). The target is therefore \emph{not} copyable: an identity
+predictor would not solve the task, so triviality does not explain the flat loss. If anything, that
+temporal neighbours are almost as far apart as unrelated frames points back to weak, under-converged
+temporal features rather than an easy task. A harder pretext task (larger temporal offsets, or masked
+spatio-temporal blocks in the style of V-JEPA \citep{bardes2024vjepa}) is still worth trying, but the
+more likely lever is a better-converged backbone with more data.
 
 \paragraph{The levers I expect to close the gap.} Assuming the pretext task is non-trivial, then in
 order of expected value: (i) a genuinely larger and more diverse \emph{unlabeled} pretraining pool,
