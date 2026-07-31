@@ -274,9 +274,11 @@ but differ only in training (self-supervised, supervised).}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.78\textwidth]{figures/h3-embedding-compare.png}
-\caption{Comparing the embeddings. Cosine similarity is measured within-neuron (same neuron across
-frames) and between-neuron (different neurons in the same frame); the gap, within minus between, is
+\includegraphics[width=0.85\textwidth]{figures/h3-within-between.png}
+\caption{The two comparisons in H3. \emph{Within-neuron:} the same neuron in different frames (its
+footprint is fixed, only its activity changes), which should be similar. \emph{Between-neuron:}
+different neurons in the same frame, which should be different. Their embeddings are compared by cosine
+similarity, and the gap (within minus between) is large when the encoder tells neurons apart. It is
 reported per encoder.}
 \label{fig:h3emb-compare}
 \end{figure}
