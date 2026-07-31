@@ -286,8 +286,7 @@ reported per encoder.}
 \paragraph{Metrics.} Segmentation quality is measured with two complementary metrics. The
 \textbf{Dice} coefficient (equivalently, pixel-level F1) measures pixel overlap,
 $\mathrm{Dice}=2|P\cap G|/(|P|+|G|)$, where $P$ and $G$ are the predicted and ground-truth foreground
-pixels; \textbf{mIoU} is the intersection-over-union $|P\cap G|/|P\cup G|$ averaged over the
-foreground and background classes. Both count pixels and carry no notion of individual neurons. I
+pixels. Dice counts pixels and carries no notion of individual neurons. I
 therefore also report \textbf{detection F1}, the instance-level harmonic mean of precision
 ($\mathrm{TP}/(\mathrm{TP}{+}\mathrm{FP})$) and recall ($\mathrm{TP}/(\mathrm{TP}{+}\mathrm{FN})$) over
 neuron instances, where a predicted component counts as a true positive only if it matches a
@@ -369,19 +368,17 @@ experiment log; they are quoted verbatim, including where the self-supervised mo
 
 \begin{table}[t]
 \centering
-\begin{tabular}{lcccc}
+\begin{tabular}{lcc}
 \toprule
- & \multicolumn{2}{c}{Test Dice} & \multicolumn{2}{c}{Test mIoU} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Labeled fraction & SSL-pretrained & From scratch & SSL-pretrained & From scratch \\
+Labeled fraction & SSL-pretrained & From scratch \\
 \midrule
-10\%  & 0.626 & \textbf{0.703} & 0.675 & \textbf{0.730} \\
-50\%  & 0.839 & \textbf{0.860} & 0.846 & \textbf{0.868} \\
-75\%  & 0.868 & \textbf{0.887} & 0.874 & \textbf{0.895} \\
-100\% & \textbf{0.895} & 0.878 & \textbf{0.903} & 0.885 \\
+10\%  & 0.626 & \textbf{0.703} \\
+50\%  & 0.839 & \textbf{0.860} \\
+75\%  & 0.868 & \textbf{0.887} \\
+100\% & \textbf{0.895} & 0.878 \\
 \bottomrule
 \end{tabular}
-\caption{H1 on Neurofinder mouse (held-out test clips). Self-supervised fine-tuning and a
+\caption{H1 on Neurofinder mouse (held-out test Dice). Self-supervised fine-tuning and a
 from-scratch baseline of identical architecture perform comparably at every labeled fraction; the
 sign of the small difference flips (baseline ahead at 10--75\%, SSL ahead at 100\%).}
 \label{tab:h1}
