@@ -517,10 +517,10 @@ recover far fewer instances than there are neurons.}
 
 At the field level (Table~\ref{tab:field}), my trained models beat the zero-shot Cellpose reference on
 both pixel overlap (Dice $0.70$--$0.71$ vs.\ $0.279$) and instance detection (F1 $0.26$--$0.28$ vs.\
-$0.170$). Two things must be said about this comparison before reading anything into it. Cellpose was
-run with automatic cell-diameter estimation; its Dice of $0.279$ is low for a
-generalist cell segmenter, so it may simply be misconfigured for these somata rather than genuinely
-weak, and it is my only external anchor, so I treat ``beats Cellpose'' with caution. Separately, the
+$0.170$). Two caveats apply to this comparison. Cellpose was run with automatic cell-diameter
+estimation, and its Dice of $0.279$ is low for a generalist cell segmenter, so it may simply be
+misconfigured for these somata rather than genuinely weak; as it is the only external anchor,
+``beats Cellpose'' should be read with caution. Separately, the
 two masks are built differently (my models average their per-clip probability maps into one
 field-level mask; Cellpose segments a single temporal max-projection), even though both are scored
 against the same footprint.
@@ -531,7 +531,7 @@ instances of the $330$ neurons present. This is not a minor metric gap. The stat
 pipeline (Section~\ref{sec:intro}) is to produce a per-neuron $\Delta F/F_0$ trace, and the trace of a
 merged blob is the \emph{sum} of two neurons' signals, a corrupted readout rather than a slightly
 worse one. Recovering fewer than half the neurons with merging therefore undermines the deliverable,
-not just a score. I should also note that the merging explanation, though consistent with the visible
+not just a score. The merging explanation, though consistent with the visible
 masks, is asserted rather than demonstrated here: a distance-transform watershed or peak-splitting
 ablation on the probability maps would confirm merging or, alternatively, reveal that recall is
 instead limited by neurons that are never active in the movie. That diagnostic is left for future work
