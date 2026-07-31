@@ -565,7 +565,7 @@ from-scratch model, and the two curves overlap throughout, consistent with the t
 \section{Discussion}
 \label{sec:discussion}
 
-\paragraph{Why there is no decisive win, and why I am not discouraged.} The most informative result
+\paragraph{Why there is no decisive win.} The most informative result
 of this project was an early \emph{negative} one: a first H1 run had self-supervised pretraining
 \emph{losing} to the baseline at every fraction. Diagnosing it was the turning point. The prediction
 loss had collapsed to near zero while segmentation stayed poor, the signature of a degenerate
@@ -635,10 +635,10 @@ calcium imaging. I did not decisively beat the baselines, and I understand exact
 self-supervised model already matches a strong supervised baseline, transfers across species with no
 meaningful penalty, and learns to tell neurons apart in time without a single label, all while its
 self-supervised objective still overfits. I have a working pipeline and the
-models and implementations to keep working on all three hypotheses. The ground work is done. There is
-room for improvement and it is worth the effort: a stronger self-supervised backbone, a direct attack
-on representation collapse, and much more unlabeled calcium video are, I am convinced, enough to push
-this novel approach past the baselines.
+models and implementations to keep working on all three hypotheses. The pipeline and baselines are in
+place, and the remaining work is well defined: a stronger self-supervised backbone, a direct attack on
+representation collapse, and much more unlabeled calcium video. These are, I expect, enough to move the
+approach past the baselines, and the criterion for success is stated above.
 
 \vskip 0.2in
 \bibliography{references}
