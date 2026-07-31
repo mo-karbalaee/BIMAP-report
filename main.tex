@@ -5,6 +5,9 @@
 \usepackage{xcolor}
 \usepackage{amsmath}
 
+\addtolength{\textheight}{2.2cm}
+\addtolength{\topmargin}{-1.1cm}
+
 \ShortHeadings{NEUROSEG: Self-Supervised Neuron Segmentation for Calcium Imaging with JEPA}{Karbalaee}
 \firstpageno{1}
 
@@ -77,7 +80,7 @@ essentially every calcium-imaging analysis pipeline.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/activity-traces.png}
+\includegraphics[width=0.85\textwidth]{figures/activity-traces.png}
 \caption{Why segmentation matters. \emph{Left:} six example neurons located in one recording.
 \emph{Right:} the $\Delta F/F_0$ activity trace read out from each once it is segmented, the quantity
 downstream analyses depend on. Data: Neurofinder 00.00, mouse cortex
@@ -190,7 +193,7 @@ is not augmented, so the two H1 arms differ only in initialization.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/pipeline.png}
+\includegraphics[width=0.85\textwidth]{figures/pipeline.png}
 \caption{The NEUROSEG pipeline. The training lane pretrains a JEPA encoder on unlabeled video and
 fine-tunes a segmentation head; the inference lane loads a recording, preprocesses it, segments it
 with either the JEPA model or the Cellpose default, extracts $\Delta F/F_0$ activity traces, and
@@ -205,7 +208,7 @@ representations.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/jepa.png}
+\includegraphics[width=0.85\textwidth]{figures/jepa.png}
 \caption{The JEPA training scheme. A context branch encodes earlier frames and predicts the latent
 of a later frame; a target branch encodes that later frame with an EMA target encoder. The two are
 matched in latent space under variance-covariance regularization. For segmentation, the pretrained
@@ -268,7 +271,7 @@ footprints only say which locations belong to which neuron.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/h3-embedding-pool.png}
+\includegraphics[width=0.85\textwidth]{figures/h3-embedding-pool.png}
 \caption{Forming a per-neuron embedding in H3. An encoder turns a frame into a dense feature map, and
 the feature vectors at the locations inside a neuron's footprint are averaged into one embedding for
 that neuron in that frame. The identical procedure is run on encoders that share this architecture
@@ -278,7 +281,7 @@ but differ only in training (self-supervised, supervised).}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/h3-within-between.png}
+\includegraphics[width=0.78\textwidth]{figures/h3-within-between.png}
 \caption{The two comparisons in H3. \emph{Within-neuron:} the same neuron in different frames (its
 footprint is fixed, only its activity changes), which should be similar. \emph{Between-neuron:}
 different neurons in the same frame, which should be different. Their embeddings are compared by cosine
@@ -402,7 +405,7 @@ on it.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/h1-results.png}
+\includegraphics[width=0.85\textwidth]{figures/h1-results.png}
 \caption{H1, field-level evaluation on held-out clips of the same recording. Dice (left) and
 detection F1 (right) versus labeled fraction, for JEPA-pretrained, from-scratch supervised, and the
 off-the-shelf Cellpose reference. The two learned models track each other and both sit well above
@@ -445,7 +448,7 @@ reflect the similarity of the data as much as a transferable, segmentation-speci
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.72\textwidth]{figures/h2-transfer.png}
+\includegraphics[width=0.62\textwidth]{figures/h2-transfer.png}
 \caption{H2 held-out mouse Dice versus labeled fraction, for three initializations: from-scratch,
 same-species self-supervision (mouse), and cross-species self-supervision (Drosophila and
 zebrafish). The two self-supervised curves nearly overlap, which is the point: cross-species
@@ -493,7 +496,7 @@ self-supervised encoder, whose objective never sees these masks, still produces 
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/h3-stability.png}
+\includegraphics[width=0.85\textwidth]{figures/h3-stability.png}
 \caption{H3. Left: within- versus between-neuron cosine similarity for the three encoders
 (cross-species self-supervised, same-species self-supervised, supervised). Right: the separation gap
 (within $-$ between) for each. Both self-supervised encoders show a clear positive gap; the supervised
@@ -546,7 +549,7 @@ instead limited by neurons that are never active in the movie. That diagnostic i
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/training-curves.png}
+\includegraphics[width=0.85\textwidth]{figures/training-curves.png}
 \caption{Error over epochs. \emph{Left:} during self-supervised pretraining the training prediction
 loss falls quickly, but the held-out prediction loss rises, so the objective is minimized on the
 training clips without generalizing. \emph{Right:} during fine-tuning, validation Dice climbs to
