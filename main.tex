@@ -285,13 +285,16 @@ reported per encoder.}
 
 \paragraph{Metrics.} Segmentation quality is measured with two complementary metrics. The
 \textbf{Dice} coefficient (equivalently, pixel-level F1) measures pixel overlap,
-$\mathrm{Dice}=2|P\cap G|/(|P|+|G|)$, and \textbf{mIoU} the mean intersection-over-union across
-foreground and background. Both count pixels and carry no notion of individual neurons. I therefore
-also report \textbf{detection F1}, the instance-level harmonic mean of precision and recall in which
-a predicted component counts as a true positive only if it matches a ground-truth neuron at
-$\mathrm{IoU}\ge 0.5$. Dice and detection F1 are not redundant: a model can cover the right pixels
-(high Dice) yet merge adjacent somata into one blob (low detection F1). H3 uses a different family
-entirely: the cosine similarity of pooled per-neuron embeddings.
+$\mathrm{Dice}=2|P\cap G|/(|P|+|G|)$, where $P$ and $G$ are the predicted and ground-truth foreground
+pixels; \textbf{mIoU} is the intersection-over-union $|P\cap G|/|P\cup G|$ averaged over the
+foreground and background classes. Both count pixels and carry no notion of individual neurons. I
+therefore also report \textbf{detection F1}, the instance-level harmonic mean of precision
+($\mathrm{TP}/(\mathrm{TP}{+}\mathrm{FP})$) and recall ($\mathrm{TP}/(\mathrm{TP}{+}\mathrm{FN})$) over
+neuron instances, where a predicted component counts as a true positive only if it matches a
+ground-truth neuron at $\mathrm{IoU}\ge 0.5$. Dice and detection F1 are not redundant: a model can
+cover the right pixels (high Dice) yet merge adjacent somata into one blob (low detection F1). H3 uses
+a different family entirely: the cosine similarity of pooled per-neuron embeddings, defined in
+Section~\ref{sec:method}.
 
 \paragraph{Two evaluation protocols.} I report segmentation at two granularities, and they are not
 interchangeable. The \emph{per-clip} protocol scores each held-out clip at the training resolution and
